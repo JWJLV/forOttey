@@ -82,7 +82,7 @@ try {
             if (!in_array($mime, $allowed_types)) continue;
             $ext      = strtolower(pathinfo($photos['name'][$i], PATHINFO_EXTENSION));
             $filename = uniqid('photo_', true) . '.' . $ext;
-            $filepath = '/forOttey/uploads/' . $filename;
+            $filepath = '/uploads/' . $filename;
             move_uploaded_file($photos['tmp_name'][$i], $upload_dir . $filename);
             $caption = trim($captions[$i] ?? '');
             $stmt = $pdo->prepare(
