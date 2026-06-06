@@ -35,9 +35,12 @@ try {
     // NOTE: add aphia_id column first if it doesn't exist:
     // ALTER TABLE fish_entries ADD COLUMN aphia_id INT DEFAULT NULL UNIQUE;
 
-    $stmt = $pdo->prepare("SELECT fish_id FROM fish_entries WHERE aphia_id = ? LIMIT 1");
-    $stmt->execute([$aphia_id]);
-    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+    $existing = false;
+    if ($aphia_id > 0) {
+        $stmt = $pdo->prepare("SELECT fish_id FROM fish_entries WHERE aphia_id = ? LIMIT 1");
+        $stmt->execute([$aphia_id]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
     if ($existing) {
         $fish_id = (int) $existing['fish_id'];
