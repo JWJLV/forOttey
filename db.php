@@ -11,7 +11,7 @@ try {
 
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-} catch (PDOException $e) {
-    die($e->getMessage());
+} } catch (PDOException $e) {
+    die(json_encode(['error' => $e->getMessage()]));  // temporary — remove after fixing!
 }
 ?>
