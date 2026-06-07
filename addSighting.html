@@ -860,13 +860,13 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
     fetch(`${WORMS}/AphiaAttributesByAphiaID/${resolvedId}`).then(r => r.ok ? r.json() : []).catch(() => []),
   ]);
 
-  // Common name
-  let commonName = '';
-  if (Array.isArray(verns) && verns.length) {
+  // Common name — prefer searchCommonName from WoRMS vernacular lookup,
+  // will be overridden by Wikipedia title below
+  let commonName = searchCommonName || '';
+  if (!commonName && Array.isArray(verns) && verns.length) {
     const eng = verns.find(v => v.language_code === 'eng');
     if (eng) commonName = eng.vernacular;
   }
-  if (!commonName) commonName = searchCommonName;
 
   // Habitat — combine WoRMS environment flags with attribute data
   let habitat = '';
@@ -902,7 +902,8 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   const wiki = await fetchWikipediaDescription(resolvedName, commonName);
   if (wiki) {
     description = wiki.extract;
-    if (!commonName && wiki.title) {
+    // Always prefer Wikipedia title as the common name — it's more reliable
+    if (wiki.title) {
       commonName = wiki.title;
       document.getElementById('sc-common').textContent = commonName;
     }
