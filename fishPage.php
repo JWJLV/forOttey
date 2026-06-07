@@ -216,7 +216,7 @@
 
     @media (max-width: 600px) {
       nav { padding: 0 12px; }
-      .page { padding-top: calc(var(--nav-h) + 20px); }
+      .page { padding-top: calc(var(--nav-total) + 20px); }
       .detail-fish-header { flex-direction: column; }
       td { padding: 10px 12px; }
       .nav-logo { font-size: 15px; }
