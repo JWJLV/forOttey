@@ -50,7 +50,6 @@
       color: var(--sand);
       letter-spacing: 0.01em;
     }
-    .nav-logo em { font-style: italic; color: #a8c5b5; }
 
     .nav-links {
       display: flex;
@@ -234,7 +233,7 @@
 <body>
 
 <nav>
-  <span class="nav-logo">Adventure <em>Sightings</em></span>
+  <span class="nav-logo">Adventure Sightings</span>
   <div class="nav-links">
     <a href="index.html" class="nav-link">Gallery</a>
     <a href="addSighting.html" class="nav-link nav-link-primary">+ Add sighting</a>
