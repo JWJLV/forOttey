@@ -57,8 +57,8 @@
 
     /* WORMS SEARCH */
     .search-wrap { position: relative; }
-    .search-input-row { display: flex; gap: 8px; }
-    .search-input-row input { flex: 1; }
+    .search-input-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .search-input-row input { flex: 1; min-width: 0; }
     .btn-search {
       font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: 8px;
       border: 1px solid var(--accent); background: var(--accent); color: #fff;
@@ -150,7 +150,14 @@
                border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    @media (max-width:580px) { .form-row { grid-template-columns: 1fr; } nav { padding: 0 16px; } }
+    @media (max-width:580px) { 
+      .form-row { grid-template-columns: 1fr; } 
+      nav { padding: 0 16px; }
+      .search-input-row { flex-direction: column; }
+      .search-input-row input,
+      .search-input-row select,
+      .search-input-row .btn-search { width: 100%; }
+    }
   </style>
 </head>
 <body>
