@@ -40,7 +40,7 @@
       display: flex;
       align-items: flex-end;                                   /* anchor to bottom of bar */
       justify-content: space-between;
-      padding-bottom: 12px;                                    /* breathing room from edge */
+      padding-bottom: 18px;                                  /* breathing room from edge */
       z-index: 100;
     }
 
