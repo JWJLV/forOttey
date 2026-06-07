@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Adventure Sightings">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="apple-touch-icon" href="/pwa-icons/icon-192-maskable.png">
   <title>Adventure Sightings – All Sightings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,8 +16,9 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --sand: #f5f0e8; --ink: #1a1814; --muted: #7a7166;
-      --accent: #2d6a4f; --card: #fffdf9;
+      --accent: #2d6a4f; --card: #fffdf9; --nav-total: calc(var(--nav-h) + env(safe-area-inset-top));
       --border: #e5e7eb; --nav-h: 64px;
+            
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--ink); min-height: 100vh; }
 
@@ -24,12 +26,14 @@
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
-      height: var(--nav-h);
+      height: calc(var(--nav-h) + env(safe-area-inset-top));
+      padding-top: env(safe-area-inset-top);
+      padding-left: max(32px, env(safe-area-inset-left));
+      padding-right: max(32px, env(safe-area-inset-right));
       background: var(--ink);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 32px;
       z-index: 100;
     }
 
