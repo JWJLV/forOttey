@@ -565,7 +565,14 @@ document.getElementById('lightbox').addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
 
-loadAllFish();
+// Check if a fish_id was passed in the URL and go straight to it
+const urlParams = new URLSearchParams(window.location.search);
+const urlFishId = urlParams.get('fish_id');
+if (urlFishId) {
+  selectFish(parseInt(urlFishId));
+} else {
+  loadAllFish();
+}
 </script>
 </body>
 </html>
