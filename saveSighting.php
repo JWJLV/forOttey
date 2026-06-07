@@ -41,6 +41,16 @@ try {
         $stmt->execute([$aphia_id]);
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    if (!$existing && $scientific_name) {
+        $stmt = $pdo->prepare("SELECT fish_id FROM fish_entries WHERE scientific_name = ? LIMIT 1");
+        $stmt->execute([$scientific_name]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    if (!$existing && $common_name) {
+        $stmt = $pdo->prepare("SELECT fish_id FROM fish_entries WHERE common_name = ? LIMIT 1");
+        $stmt->execute([$common_name]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
     if ($existing) {
         $fish_id = (int) $existing['fish_id'];
