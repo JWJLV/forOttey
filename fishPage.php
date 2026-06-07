@@ -75,7 +75,7 @@
     .nav-link-primary:hover { background: #245c43; }
 
     /* PAGE */
-    .page { max-width: 900px; margin: 0 auto; padding: calc(var(--nav-h) + 32px) 20px 60px; }
+    .page { max-width: 900px; margin: 0 auto; padding: calc(var(--nav-total) + 32px) 20px 60px; }
     .page-header { margin-bottom: 28px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
     .page-header-text h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
     .page-header-text p { font-size: 14px; color: var(--muted); margin-top: 4px; font-weight: 300; }
