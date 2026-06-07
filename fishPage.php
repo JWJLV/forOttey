@@ -454,9 +454,11 @@ function renderFishDetail(rows) {
         </div>
         ${s.notes ? `<div class="sighting-notes">${escHtml(s.notes)}</div>` : ''}
         ${photos ? `<div class="sighting-photos">${photos}</div>` : ''}
+        <div style="margin-top:10px;text-align:right">
+          <button onclick="deleteSighting(${s.sighting_id})" style="font-size:12px;color:#ef4444;background:none;border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">Delete</button>
+        </div>
       </div>`;
-      <button onclick="deleteSighting(${s.sighting_id})" style="font-size:12px;color:#ef4444;background:none;border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">Delete</button>
-  }).join('');
+    }).join('');
 
   document.getElementById('result-panel').innerHTML = `
     <button class="btn-back" onclick="loadAllFish()">← Back to all sightings</button>
