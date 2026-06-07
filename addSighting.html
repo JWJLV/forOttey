@@ -543,21 +543,7 @@ async function fetchWikipediaDescription(sciName, commonName) {
     return null;
   };
 
-  const sciResult    = await tryName(sciName);
-  const commonResult = commonName ? await tryName(commonName) : null;
-
-  // If we have a common name result with a non-scientific title, prefer it
-  if (commonResult && commonResult.title &&
-      commonResult.title.toLowerCase() !== sciName.toLowerCase()) {
-    // Merge: use common result's title but prefer sci result's extract if better
-    return {
-      ...commonResult,
-      extract:   sciResult?.extract || commonResult.extract,
-      thumbnail: sciResult?.thumbnail || commonResult.thumbnail,
-    };
-  }
-
-  return sciResult || commonResult;
+  return (await tryName(sciName)) || (commonName ? await tryName(commonName) : null);
 }
 
 // ── WoRMS Search ──────────────────────────────────────────────────────────────
@@ -1039,12 +1025,10 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   if (wiki) {
     description = wiki.extract;
     // Always prefer Wikipedia title as the common name — it's more reliable
-    // Use Wikipedia title unless it's the same as the scientific name
-    if (wiki.title && wiki.title.toLowerCase() !== resolvedName.toLowerCase()) {
+    if (wiki.title) {
       commonName = wiki.title;
       document.getElementById('sc-common').textContent = commonName;
     }
-// if wiki title is the scientific name, keep whatever commonName was already set
     // Show photo in card header
     if (wiki.thumbnail) {
       const img = document.getElementById('sc-photo');
