@@ -572,6 +572,7 @@ async function wormsSearch() {
     const withThumb = await Promise.all(
       candidates.map(async r => {
         let thumb = null;
+        let wikiTitle = null;
         const names = [r.scientificname, r._common].filter(Boolean);
         for (const name of names) {
           try {
@@ -579,14 +580,15 @@ async function wormsSearch() {
             const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`);
             if (res.ok) {
               const data = await res.json();
-              if (data.type !== 'disambiguation' && data.thumbnail?.source) {
-                thumb = data.thumbnail.source;
-                break;
+              if (data.type !== 'disambiguation') {
+                if (data.thumbnail?.source) thumb = data.thumbnail.source;
+                if (data.title && !wikiTitle) wikiTitle = data.title;
+                if (thumb) break;
               }
             }
           } catch(e) {}
         }
-        return { ...r, _thumb: thumb };
+        return { ...r, _thumb: thumb, _wikiTitle: wikiTitle };
       })
     );
 
@@ -648,8 +650,8 @@ async function wormsSearch() {
     }
 
     withThumb.forEach(r => {
-      const displayName = r._common
-        ? r._common.charAt(0).toUpperCase() + r._common.slice(1)
+      const displayName = r._wikiTitle || r._common
+        ? (r._wikiTitle || r._common).charAt(0).toUpperCase() + (r._wikiTitle || r._common).slice(1)
         : r.scientificname;
       const subLine = r._common ? r.scientificname : '';
       const rankBadge = r.rank
@@ -681,7 +683,7 @@ async function wormsSearch() {
         text.appendChild(sci);
       }
       item.appendChild(text);
-      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', r._common || ''));
+      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', r._wikiTitle || r._common || ''));
       container.appendChild(item);
     });
 
