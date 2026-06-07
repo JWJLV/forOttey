@@ -32,14 +32,15 @@
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
-      height: var(--nav-h);                          /* just the bar height, no safe area */
-      padding-top: env(safe-area-inset-top);         /* pushes content down past the notch */
+      height: calc(var(--nav-h) + env(safe-area-inset-top));  /* background covers notch */
+      padding-top: env(safe-area-inset-top);                   /* push content below notch */
       padding-left: max(32px, env(safe-area-inset-left));
       padding-right: max(32px, env(safe-area-inset-right));
       background: var(--ink);
       display: flex;
-      align-items: center;
+      align-items: flex-end;                                   /* anchor to bottom of bar */
       justify-content: space-between;
+      padding-bottom: 12px;                                    /* breathing room from edge */
       z-index: 100;
     }
 
