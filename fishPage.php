@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" href="/pwa-icons/icon-192-maskable.png">
   <title>Adventure Sightings – All Sightings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -237,7 +237,7 @@
 
   <div style="margin-bottom:18px">
     <div style="display:flex;align-items:center;gap:0;background:#fff;border:1px solid #d1d5db;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:box-shadow 0.15s,border-color 0.15s" id="fish-search-bar">
-      <span style="padding:0 14px;color:#7a7166;font-size:16px;pointer-events:none">🔍</span>
+      <span style="padding:0 14px;color:#7a7166;font-size:16px;pointer-events:none"></span>
       <input id="fish-search-input" type="text" placeholder="Search species…" autocomplete="off"
         style="flex:1;border:none;outline:none;font-family:inherit;font-size:14px;color:#1a1814;background:transparent;padding:11px 0">
       <button id="fish-search-clear" onclick="clearFishSearch()" style="padding:0 14px;background:none;border:none;cursor:pointer;color:#7a7166;font-size:18px;display:none">×</button>
