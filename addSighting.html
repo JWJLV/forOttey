@@ -987,6 +987,8 @@ document.getElementById('form').addEventListener('submit', async function(e) {
   if (!date)             { showStatus('Please enter a sighting date.', 'err'); return; }
   if (!selectedSpecies)  { showStatus('Please search for and select a species.', 'err'); return; }
 
+  if (!confirm(`Save sighting of ${selectedSpecies.commonName || selectedSpecies.sciName}?`)) return;
+
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Saving…';
