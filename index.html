@@ -241,21 +241,6 @@
       object-fit: cover;
     }
 
-    .photo-tape {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%) rotate(-2deg);
-      width: 48px;
-      height: 18px;
-      background: rgba(255, 240, 180, 0.75);
-      border-radius: 2px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .photo-item:nth-child(even) .photo-tape {
-      transform: translateX(-50%) rotate(1.5deg);
-      left: 40%;
-    }
 
     /* ── HOVER TOOLTIP ───────────────────────────────────── */
     .photo-tooltip {
@@ -594,7 +579,6 @@
                data-date="${date.toLowerCase()}"
                data-notes="${(p.notes||'').toLowerCase()}"
                data-habitat="${(p.habitat||'').toLowerCase()}">
-            <div class="photo-tape"></div>
             <div class="photo-inner">
               <img src="${p.filepath}" alt="${fish}" loading="lazy"
                    onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><rect fill=%22%23e8e2d8%22 width=%22400%22 height=%22300%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23a09880%22 font-size=%2214%22>No image</text></svg>'">
