@@ -416,6 +416,7 @@ async function fetchWikipediaDescription(sciName, commonName) {
           extract:   data.extract,
           url:       data.content_urls?.desktop?.page || null,
           thumbnail: data.thumbnail?.source || null,
+          title:     data.title || null,
         };
       }
     } catch (e) {}
@@ -901,6 +902,10 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   const wiki = await fetchWikipediaDescription(resolvedName, commonName);
   if (wiki) {
     description = wiki.extract;
+    if (!commonName && wiki.title) {
+      commonName = wiki.title;
+      document.getElementById('sc-common').textContent = commonName;
+    }
     // Show photo in card header
     if (wiki.thumbnail) {
       const img = document.getElementById('sc-photo');
