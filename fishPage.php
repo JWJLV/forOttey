@@ -225,7 +225,7 @@
       .page { padding-top: calc(var(--nav-total) + 20px); }
       .detail-fish-header { flex-direction: column; }
       td { padding: 10px 12px; }
-      .nav-logo { font-size: 15px; }
+      .nav-logo { font-size: 15px; margin-bottom: 6px;}
       .nav-link { padding: 7px 8px; font-size: 11px; }
       .nav-links { justify-content: center; }
     }
