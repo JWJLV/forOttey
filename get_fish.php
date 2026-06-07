@@ -25,8 +25,9 @@ if ($fish_id > 0) {
 
 else 
 { // All fish entries
-    $stmt = $pdo->query( "SELECT f.fish_id, f.common_name, f.scientific_name, f.habitat, f.date_added, 
-                          COUNT(DISTINCT s.sighting_id) AS sighting_count,COUNT(DISTINCT p.photo_id) AS photo_count 
+     
+    $stmt = $pdo->query( "SELECT f.fish_id, f.common_name, f.scientific_name, f.habitat, f.aphia_id, f.date_added,
+                          COUNT(DISTINCT s.sighting_id) AS sighting_count, COUNT(DISTINCT p.photo_id) AS photo_count
                           FROM fish_entries f
                           LEFT JOIN sightings s
                           ON f.fish_id = s.fish_id
