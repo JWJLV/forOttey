@@ -15,9 +15,14 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --sand: #f5f0e8; --ink: #1a1814; --muted: #7a7166;
-      --accent: #2d6a4f; --card: #fffdf9; 
-      --border: #e5e7eb; --nav-h: 64px;
+      --sand:    #fdf6ec;  /* warm shell white, keeps the softness */
+      --ink:     #0d2b3e;  /* deep ocean navy instead of near-black */
+      --muted:   #6b9aaa;  /* sea-haze blue-grey */
+      --accent:  #1a8fa0;  /* tropical teal — your main CTA/link colour */
+      --accent2: #e8603c;  /* true coral — vivid, warm, very "reef" */
+      --accent3: #f4a44b;  /* golden damselfish — optional highlight */
+      --border: #cde0e8;  /* pale ocean mist — warm but with a hint of sea */
+      --nav-h: 64px;
       --nav-total: calc(var(--nav-h) + env(safe-area-inset-top));
             
     }
