@@ -680,7 +680,7 @@ async function wormsSearch() {
         text.appendChild(sci);
       }
       item.appendChild(text);
-      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || ''));
+      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', r._common || ''));
       container.appendChild(item);
     });
 
@@ -829,7 +829,7 @@ document.getElementById('worms-query').addEventListener('keydown', e => {
 });
 
 // ── Select species ────────────────────────────────────────────────────────────
-async function selectSpecies(aphiaId, sciName, status) {
+async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   hideResults();
 
   // Show loading state immediately
@@ -865,6 +865,7 @@ async function selectSpecies(aphiaId, sciName, status) {
     const eng = verns.find(v => v.language_code === 'eng');
     if (eng) commonName = eng.vernacular;
   }
+  if (!commonName) commonName = searchCommonName;
 
   // Habitat — combine WoRMS environment flags with attribute data
   let habitat = '';
