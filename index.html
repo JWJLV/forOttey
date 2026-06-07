@@ -71,6 +71,7 @@
       border-radius: 6px;
       transition: background 0.15s, color 0.15s;
       letter-spacing: 0.02em;
+      white-space: nowrap;
     }
     .nav-link:hover { background: rgba(255,255,255,0.08); color: #fffdf9; }
 
@@ -78,6 +79,8 @@
       background: var(--accent);
       color: #fffdf9 !important;
       font-weight: 500;
+      justify-content: center;
+      text-align: center;
     }
     .nav-link-primary:hover { background: #245c43; }
 
@@ -450,14 +453,17 @@
       color: var(--muted);
     }
     .gallery-state p { font-size: 15px; margin-top: 8px; }
+    
+
 
     @media (max-width: 600px) {
-      nav { padding: 0 16px; }
+      nav { padding: 0 12px; }
       .hero { padding-left: 20px; padding-right: 20px; }
       .search-bar-wrap { padding-left: 20px; padding-right: 20px; }
       .gallery-wrap { padding: 16px 12px 60px; }
       .gallery { columns: 2 140px; }
-      .nav-logo { font-size: 17px; }
+      .nav-link { padding: 7px 8px; font-size: 11px; }
+      .nav-logo { font-size: 15px; }
       .nav-links { justify-content: center; }
     }
   </style>
