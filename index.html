@@ -302,7 +302,7 @@
       position: fixed;
       inset: 0;
       background: rgba(20, 18, 15, 0);
-      backdrop-filter: blur(4px);
+      backdrop-filter: none;
       z-index: 200;
       display: flex;
       align-items: center;
@@ -311,9 +311,11 @@
       pointer-events: none;
       transition: background 0.2s;
     }
+  
     .modal-backdrop.open {
       background: rgba(20, 18, 15, 0.75);
       pointer-events: all;
+      backdrop-filter: blur(4px);
     }
 
     .modal {
