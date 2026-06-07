@@ -219,9 +219,9 @@
     .skeleton-block { background: linear-gradient(90deg,#ede9e1 25%,#e5e1d8 50%,#ede9e1 75%);
                       background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 4px; height: 14px; }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    
+
     @media (max-width: 600px) {
-        nav { padding-bottom: 10px; }
+      nav { padding: 0 12px; padding-bottom: 10px;}
       .page { padding-top: calc(var(--nav-total) + 20px); }
       .detail-fish-header { flex-direction: column; }
       td { padding: 10px 12px; }
@@ -229,7 +229,6 @@
       .nav-link { padding: 7px 8px; font-size: 11px; }
       .nav-links { justify-content: center; }
     }
-
   </style>
 </head>
 <body>
