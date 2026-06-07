@@ -21,15 +21,49 @@
     body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--ink); min-height: 100vh; }
 
     /* NAV */
-    nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); background: var(--ink);
-          display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 100; }
-    .nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--sand); }
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--sand);
+      letter-spacing: 0.01em;
+    }
     .nav-logo em { font-style: italic; color: #a8c5b5; }
-    .nav-links { display: flex; gap: 8px; }
-    .nav-link { font-size: 13px; color: #b8b0a4; text-decoration: none; padding: 7px 16px;
-                border-radius: 6px; transition: background 0.15s, color 0.15s; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 400;
+      color: #b8b0a4;
+      text-decoration: none;
+      padding: 7px 16px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+      letter-spacing: 0.02em;
+    }
     .nav-link:hover { background: rgba(255,255,255,0.08); color: #fffdf9; }
-    .nav-link-primary { background: var(--accent); color: #fffdf9 !important; font-weight: 500; }
+
+    .nav-link-primary {
+      background: var(--accent);
+      color: #fffdf9 !important;
+      font-weight: 500;
+    }
     .nav-link-primary:hover { background: #245c43; }
 
     /* PAGE */
@@ -177,6 +211,7 @@
       .page { padding-top: calc(var(--nav-h) + 20px); }
       .detail-fish-header { flex-direction: column; }
       td { padding: 10px 12px; }
+      .nav-logo { font-size: 17px; }
     }
   </style>
 </head>
