@@ -8,6 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Adventure Sightings">
   <link rel="apple-touch-icon" href="/pwa-icons/icon-192-maskable.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <title>Adventure Sightings – Add Sighting</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -231,7 +233,10 @@
           </div>
           <div class="form-group">
             <label for="location">Location</label>
-            <input type="text" id="location" placeholder="e.g. Great Barrier Reef">
+            <div style="display:flex;gap:8px">
+              <input type="text" id="location" placeholder="e.g. Great Barrier Reef" style="flex:1">
+              <button type="button" onclick="openMap()" style="font-size:13px;padding:9px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-family:inherit;white-space:nowrap;color:#374151;transition:background 0.15s" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#fff'">📍 Map</button>
+            </div>
           </div>
         </div>
         <div class="form-group">
@@ -368,6 +373,20 @@
   </form>
 </div>
 
+<div id="map-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:24px">
+  <div style="background:#fff;border-radius:14px;overflow:hidden;width:100%;max-width:640px;box-shadow:0 24px 64px rgba(0,0,0,0.35)">
+    <div style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb">
+      <span style="font-size:14px;font-weight:500;color:#1a1814">Tap to pin your sighting location</span>
+      <button onclick="closeMap()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#7a7166;line-height:1">&times;</button>
+    </div>
+    <div id="map" style="height:400px;width:100%"></div>
+    <div style="padding:12px 20px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <span id="map-location-preview" style="font-size:13px;color:#7a7166;flex:1">Click the map to drop a pin…</span>
+      <button id="map-confirm-btn" onclick="confirmMapLocation()" disabled style="font-size:13px;font-weight:500;padding:8px 18px;border-radius:8px;border:none;background:#9dc4b4;color:#fff;cursor:not-allowed;font-family:inherit">Use this location</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── State ─────────────────────────────────────────────────────────────────────
 let selectedSpecies = null;
@@ -382,6 +401,91 @@ const WORMS = 'https://www.marinespecies.org/rest';
     if (res.ok) knownFish = await res.json();
   } catch(e) {}
 })();
+
+
+// ── Map picker ────────────────────────────────────────────────────────────────
+let _map = null;
+let _mapMarker = null;
+let _pendingLocation = null;
+
+function openMap() {
+  const modal = document.getElementById('map-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Init map only once
+  if (!_map) {
+    _map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(_map);
+
+    _map.on('click', async (e) => {
+      const { lat, lng } = e.latlng;
+
+      // Drop/move marker
+      if (_mapMarker) {
+        _mapMarker.setLatLng([lat, lng]);
+      } else {
+        _mapMarker = L.marker([lat, lng]).addTo(_map);
+      }
+
+      document.getElementById('map-location-preview').textContent = 'Looking up location…';
+      document.getElementById('map-confirm-btn').disabled = true;
+      document.getElementById('map-confirm-btn').style.background = '#9dc4b4';
+      document.getElementById('map-confirm-btn').style.cursor = 'not-allowed';
+
+      // Reverse geocode with Nominatim
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        const place = buildPlaceName(data);
+        _pendingLocation = place;
+        document.getElementById('map-location-preview').textContent = place;
+      } catch(e) {
+        _pendingLocation = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        document.getElementById('map-location-preview').textContent = _pendingLocation;
+      }
+
+      document.getElementById('map-confirm-btn').disabled = false;
+      document.getElementById('map-confirm-btn').style.background = '#2d6a4f';
+      document.getElementById('map-confirm-btn').style.cursor = 'pointer';
+    });
+  }
+
+  // Invalidate size in case modal was hidden on init
+  setTimeout(() => _map.invalidateSize(), 100);
+
+  // Try to center on current location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      _map.setView([pos.coords.latitude, pos.coords.longitude], 10);
+    });
+  }
+}
+
+function buildPlaceName(data) {
+  const a = data.address || {};
+  const parts = [
+    a.nature_reserve || a.protected_area || a.bay || a.sea ||
+    a.ocean || a.reef || a.beach || a.suburb || a.village ||
+    a.town || a.city,
+    a.state || a.county,
+    a.country
+  ].filter(Boolean);
+  return parts.join(', ') || data.display_name || 'Unknown location';
+}
+
+function confirmMapLocation() {
+  if (!_pendingLocation) return;
+  document.getElementById('location').value = _pendingLocation;
+  closeMap();
+}
+
+function closeMap() {
+  document.getElementById('map-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
 
 // ── Chordata check ────────────────────────────────────────────────────────────
 // Some records (especially from vernacular search) don't include phylum.
