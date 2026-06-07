@@ -16,8 +16,9 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --sand: #f5f0e8; --ink: #1a1814; --muted: #7a7166;
-      --accent: #2d6a4f; --card: #fffdf9; --nav-total: calc(var(--nav-h) + env(safe-area-inset-top));
+      --accent: #2d6a4f; --card: #fffdf9; 
       --border: #e5e7eb; --nav-h: 64px;
+      --nav-total: calc(var(--nav-h) + env(safe-area-inset-top));
             
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--ink); min-height: 100vh; }
