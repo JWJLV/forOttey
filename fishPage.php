@@ -392,6 +392,22 @@ async function selectFish(fishId) {
   }
 }
 
+async function deleteSighting(sightingId) {
+  if (!confirm('Delete this sighting and its photos? This cannot be undone.')) return;
+  try {
+    const fd = new FormData();
+    fd.append('sighting_id', sightingId);
+    const res  = await fetch('deleteSighting.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    // Remove from DOM
+    const el = document.getElementById(`sighting-${sightingId}`);
+    if (el) el.remove();
+  } catch(e) {
+    alert('Network error: ' + e.message);
+  }
+}
+
 function renderFishDetail(rows) {
   if (!rows.length) { showError('No sightings found.'); return; }
 
@@ -439,6 +455,7 @@ function renderFishDetail(rows) {
         ${s.notes ? `<div class="sighting-notes">${escHtml(s.notes)}</div>` : ''}
         ${photos ? `<div class="sighting-photos">${photos}</div>` : ''}
       </div>`;
+      <button onclick="deleteSighting(${s.sighting_id})" style="font-size:12px;color:#ef4444;background:none;border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">Delete</button>
   }).join('');
 
   document.getElementById('result-panel').innerHTML = `
