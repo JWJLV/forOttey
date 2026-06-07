@@ -770,9 +770,10 @@ async function wormsSearch() {
     }
 
     withThumb.forEach(r => {
-      const displayName = r._wikiTitle || r._common
-        ? (r._wikiTitle || r._common).charAt(0).toUpperCase() + (r._wikiTitle || r._common).slice(1)
+      const displayName = bestCommon
+        ? bestCommon.charAt(0).toUpperCase() + bestCommon.slice(1)
         : r.scientificname;
+  
       const subLine = r._common ? r.scientificname : '';
       const rankBadge = r.rank
         ? `<span style="font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:#e8f4f0;color:#2d6a4f;margin-left:6px">${r.rank}</span>`
@@ -803,7 +804,9 @@ async function wormsSearch() {
         text.appendChild(sci);
       }
       item.appendChild(text);
-      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', r._wikiTitle || r._common || ''));
+      const looksScientific = r._wikiTitle && r._wikiTitle.toLowerCase() === r.scientificname.toLowerCase();
+      const bestCommon = looksScientific ? r._common : (r._wikiTitle || r._common);
+      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', bestCommon || ''));
       container.appendChild(item);
     });
 
@@ -1024,9 +1027,12 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   const wiki = await fetchWikipediaDescription(resolvedName, commonName);
   if (wiki) {
     description = wiki.extract;
-    // Always prefer Wikipedia title as the common name — it's more reliable
-    if (wiki.title) {
+    // Use Wikipedia title unless it matches the scientific name
+    if (wiki.title && wiki.title.toLowerCase() !== resolvedName.toLowerCase()) {
       commonName = wiki.title;
+      document.getElementById('sc-common').textContent = commonName;
+    } else if (commonName) {
+      // Wiki title is the scientific name — keep WoRMS/searchCommonName already set
       document.getElementById('sc-common').textContent = commonName;
     }
     // Show photo in card header
