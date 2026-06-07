@@ -701,9 +701,12 @@ async function wormsSearch() {
             if (res.ok) {
               const data = await res.json();
               if (data.type !== 'disambiguation') {
-                if (data.thumbnail?.source) thumb = data.thumbnail.source;
-                if (data.title && !wikiTitle) wikiTitle = data.title;
-                if (thumb) break;
+                if (data.thumbnail?.source && !thumb) thumb = data.thumbnail.source;
+                // Only accept title if it doesn't look like a scientific name
+                if (data.title && !wikiTitle) {
+                  const looksScientific = /^[A-Z][a-z]+ [a-z]+$/.test(data.title);
+                  if (!looksScientific) wikiTitle = data.title;
+                }
               }
             }
           } catch(e) {}
@@ -1031,11 +1034,8 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
     if (wiki.title && !looksScientific) {
       commonName = wiki.title;
       document.getElementById('sc-common').textContent = commonName;
-    } else if (looksScientific && searchCommonName) {
-      // Keep the searchCommonName if wiki title is just the scientific name
-      commonName = searchCommonName;
-      document.getElementById('sc-common').textContent = commonName;
     }
+// if looksScientific, keep whatever commonName was set from WoRMS/searchCommonName
     // Show photo in card header
     if (wiki.thumbnail) {
       const img = document.getElementById('sc-photo');
