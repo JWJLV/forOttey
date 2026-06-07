@@ -770,6 +770,8 @@ async function wormsSearch() {
     }
 
     withThumb.forEach(r => {
+      const looksScientific = r._wikiTitle && r._wikiTitle.toLowerCase() === r.scientificname.toLowerCase();
+      const bestCommon = looksScientific ? r._common : (r._wikiTitle || r._common);
       const displayName = bestCommon
         ? bestCommon.charAt(0).toUpperCase() + bestCommon.slice(1)
         : r.scientificname;
@@ -804,8 +806,6 @@ async function wormsSearch() {
         text.appendChild(sci);
       }
       item.appendChild(text);
-      const looksScientific = r._wikiTitle && r._wikiTitle.toLowerCase() === r.scientificname.toLowerCase();
-      const bestCommon = looksScientific ? r._common : (r._wikiTitle || r._common);
       item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', bestCommon || ''));
       container.appendChild(item);
     });
