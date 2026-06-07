@@ -32,8 +32,8 @@
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
-      height: calc(var(--nav-h) + env(safe-area-inset-top));
-      padding-top: env(safe-area-inset-top);
+      height: var(--nav-h);                          /* just the bar height, no safe area */
+      padding-top: env(safe-area-inset-top);         /* pushes content down past the notch */
       padding-left: max(32px, env(safe-area-inset-left));
       padding-right: max(32px, env(safe-area-inset-right));
       background: var(--ink);
