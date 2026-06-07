@@ -221,7 +221,6 @@
   <span class="nav-logo">Adventure <em>Sightings</em></span>
   <div class="nav-links">
     <a href="index.html" class="nav-link">Gallery</a>
-    <a href="fishPage.php" class="nav-link">All Sightings</a>
     <a href="addSighting.html" class="nav-link nav-link-primary">+ Add sighting</a>
   </div>
 </nav>
