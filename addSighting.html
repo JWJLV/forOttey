@@ -213,7 +213,7 @@
 <div class="page">
   <div class="page-header">
     <h1>Add a sighting</h1>
-    <p>Search WoRMS to identify the species, then log where and when you saw it.</p>
+    <p>Search species database to find the species, then log where and when you saw it.</p>
   </div>
 
   <div id="status" class="status"></div>
@@ -243,7 +243,7 @@
 
     <!-- SPECIES -->
     <div class="form-card">
-      <div class="section-head">Species — WoRMS lookup</div>
+      <div class="section-head">Species — database lookup</div>
       <div class="form-body">
 
         <!-- Search row — only shown when no species selected -->
@@ -435,7 +435,7 @@ async function wormsSearch() {
   const btn = document.getElementById('btn-worms-search');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>';
-  showResults('<div class="search-message">Searching WoRMS…</div>');
+  showResults('<div class="search-message">Searching database…</div>');
 
   try {
     const ql = q.toLowerCase();
