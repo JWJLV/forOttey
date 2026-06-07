@@ -58,6 +58,7 @@
       border-radius: 6px;
       transition: background 0.15s, color 0.15s;
       letter-spacing: 0.02em;
+      white-space: nowrap;
     }
     .nav-link:hover { background: rgba(255,255,255,0.08); color: #fffdf9; }
 
@@ -65,6 +66,8 @@
       background: var(--accent);
       color: #fffdf9 !important;
       font-weight: 500;
+      justify-content: center;
+      text-align: center;
     }
     .nav-link-primary:hover { background: #245c43; }
 
@@ -193,12 +196,14 @@
 
     @media (max-width:580px) { 
       .form-row { grid-template-columns: 1fr; } 
-      nav { padding: 0 16px; }
+       nav { padding: 0 12px; }
       .search-input-row { flex-direction: column; }
       .search-input-row input,
       .search-input-row select,
       .search-input-row .btn-search { width: 100%; }
-      .nav-logo { font-size: 17px; }
+      .nav-logo { font-size: 15px; }
+      .nav-link { padding: 7px 8px; font-size: 11px; }
+      .nav-links { justify-content: center; }
     }
   </style>
 </head>

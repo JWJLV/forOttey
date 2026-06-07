@@ -56,6 +56,7 @@
       border-radius: 6px;
       transition: background 0.15s, color 0.15s;
       letter-spacing: 0.02em;
+      white-space: nowrap;
     }
     .nav-link:hover { background: rgba(255,255,255,0.08); color: #fffdf9; }
 
@@ -63,6 +64,8 @@
       background: var(--accent);
       color: #fffdf9 !important;
       font-weight: 500;
+      justify-content: center;
+      text-align: center;
     }
     .nav-link-primary:hover { background: #245c43; }
 
@@ -207,11 +210,13 @@
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
     @media (max-width: 600px) {
-      nav { padding: 0 16px; }
+      nav { padding: 0 12px; }
       .page { padding-top: calc(var(--nav-h) + 20px); }
       .detail-fish-header { flex-direction: column; }
       td { padding: 10px 12px; }
-      .nav-logo { font-size: 17px; }
+      .nav-logo { font-size: 15px; }
+      .nav-link { padding: 7px 8px; font-size: 11px; }
+      .nav-links { justify-content: center; }
     }
   </style>
 </head>
