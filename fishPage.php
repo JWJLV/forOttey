@@ -200,6 +200,15 @@
     <span class="fish-count-badge" id="fish-count" style="display:none"></span>
   </div>
 
+  <div style="margin-bottom:18px">
+    <div style="display:flex;align-items:center;gap:0;background:#fff;border:1px solid #d1d5db;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:box-shadow 0.15s,border-color 0.15s" id="fish-search-bar">
+      <span style="padding:0 14px;color:#7a7166;font-size:16px;pointer-events:none">🔍</span>
+      <input id="fish-search-input" type="text" placeholder="Search species…" autocomplete="off"
+        style="flex:1;border:none;outline:none;font-family:inherit;font-size:14px;color:#1a1814;background:transparent;padding:11px 0">
+      <button id="fish-search-clear" onclick="clearFishSearch()" style="padding:0 14px;background:none;border:none;cursor:pointer;color:#7a7166;font-size:18px;display:none">×</button>
+    </div>
+  </div>
+
   <div id="result-panel">
     <!-- Loading skeletons -->
     <div class="card">
@@ -229,6 +238,36 @@
 
 <script>
 const API = 'get_fish.php';
+
+let allFishData = [];
+
+function setupFishSearch() {
+  const input = document.getElementById('fish-search-input');
+  const clear = document.getElementById('fish-search-clear');
+  if (!input) return;
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    clear.style.display = q ? 'block' : 'none';
+    filterFishTable(q);
+  });
+}
+
+function filterFishTable(q) {
+  const rows = document.querySelectorAll('#fish-tbody tr');
+  let visible = 0;
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    const show = !q || text.includes(q);
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+}
+
+function clearFishSearch() {
+  document.getElementById('fish-search-input').value = '';
+  document.getElementById('fish-search-clear').style.display = 'none';
+  filterFishTable('');
+}
 
 // ── Load all fish ─────────────────────────────────────────────────────────────
 async function loadAllFish() {
@@ -292,10 +331,12 @@ function renderFishList(fish) {
               <th>Photos</th>
             </tr>
           </thead>
-          <tbody>${rows}</tbody>
+          <tbody id="fish-tbody">${rows}</tbody>
         </table>
       </div>
     </div>`;
+
+    setupFishSearch();
 }
 
 // ── Select a fish → show sightings ───────────────────────────────────────────
