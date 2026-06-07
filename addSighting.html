@@ -543,7 +543,21 @@ async function fetchWikipediaDescription(sciName, commonName) {
     return null;
   };
 
-  return (await tryName(sciName)) || (commonName ? await tryName(commonName) : null);
+  const sciResult    = await tryName(sciName);
+  const commonResult = commonName ? await tryName(commonName) : null;
+
+  // If we have a common name result with a non-scientific title, prefer it
+  if (commonResult && commonResult.title &&
+      commonResult.title.toLowerCase() !== sciName.toLowerCase()) {
+    // Merge: use common result's title but prefer sci result's extract if better
+    return {
+      ...commonResult,
+      extract:   sciResult?.extract || commonResult.extract,
+      thumbnail: sciResult?.thumbnail || commonResult.thumbnail,
+    };
+  }
+
+  return sciResult || commonResult;
 }
 
 // ── WoRMS Search ──────────────────────────────────────────────────────────────
