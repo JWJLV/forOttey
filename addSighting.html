@@ -3,32 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ottey's Fish – Add Sighting</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Adventure Sightings">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="apple-touch-icon" href="/pwa-icons/icon-192-maskable.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <title>Adventure Sightings – Add Sighting</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --sand: #f5f0e8; --ink: #1a1814; --muted: #7a7166;
-      --accent: #2d6a4f; --card: #fffdf9;
-      --border: #e5e7eb; --nav-h: 64px;
+      --sand:    #fdf6ec;  /* warm shell white, keeps the softness */
+      --ink:     #0d2b3e;  /* deep ocean navy instead of near-black */
+      --muted:   #6b9aaa;  /* sea-haze blue-grey */
+      --accent:  #1a8fa0;  /* tropical teal — your main CTA/link colour */
+      --accent2: #e8603c;  /* true coral — vivid, warm, very "reef" */
+      --accent3: #f4a44b;  /* golden damselfish — optional highlight */
+      --border: #cde0e8;  /* pale ocean mist — warm but with a hint of sea */
+      --nav-h: 64px; 
+      --nav-total: calc(var(--nav-h) + env(safe-area-inset-top));
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--ink); min-height: 100vh; }
 
     /* NAV */
-    nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); background: var(--ink);
-          display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 100; }
-    .nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--sand); }
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: calc(var(--nav-h) + env(safe-area-inset-top));  /* background covers notch */
+      padding-top: env(safe-area-inset-top);                   /* push content below notch */
+      padding-left: max(32px, env(safe-area-inset-left));
+      padding-right: max(32px, env(safe-area-inset-right));
+      background: var(--ink);
+      display: flex;
+      align-items: flex-end;                                   /* anchor to bottom of bar */
+      justify-content: space-between;
+      padding-bottom: 18px;                                  /* breathing room from edge */
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--sand);
+      letter-spacing: 0.01em;
+    }
     .nav-logo em { font-style: italic; color: #a8c5b5; }
-    .nav-links { display: flex; gap: 8px; }
-    .nav-link { font-size: 13px; color: #b8b0a4; text-decoration: none; padding: 7px 16px;
-                border-radius: 6px; transition: background 0.15s, color 0.15s; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 400;
+      color: #b8b0a4;
+      text-decoration: none;
+      padding: 7px 16px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
     .nav-link:hover { background: rgba(255,255,255,0.08); color: #fffdf9; }
-    .nav-link-primary { background: var(--accent); color: #fffdf9 !important; font-weight: 500; }
+
+    .nav-link-primary {
+      background: var(--accent);
+      color: #fffdf9 !important;
+      font-weight: 500;
+      justify-content: center;
+      text-align: center;
+    }
     .nav-link-primary:hover { background: #245c43; }
 
     /* PAGE */
-    .page { max-width: 700px; margin: 0 auto; padding: calc(var(--nav-h) + 32px) 20px 60px; }
+    .page { max-width: 700px; margin: 0 auto; padding: calc(var(--nav-total) + 32px) 20px 60px; }
     .page-header { margin-bottom: 28px; }
     .page-header h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
     .page-header p { font-size: 14px; color: var(--muted); margin-top: 4px; font-weight: 300; }
@@ -57,8 +111,8 @@
 
     /* WORMS SEARCH */
     .search-wrap { position: relative; }
-    .search-input-row { display: flex; gap: 8px; }
-    .search-input-row input { flex: 1; }
+    .search-input-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .search-input-row input { flex: 1; min-width: 0; }
     .btn-search {
       font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: 8px;
       border: 1px solid var(--accent); background: var(--accent); color: #fff;
@@ -150,24 +204,34 @@
                border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    @media (max-width:580px) { .form-row { grid-template-columns: 1fr; } nav { padding: 0 16px; } }
+    @media (max-width:580px) { 
+      .form-row { grid-template-columns: 1fr; } 
+      nav { padding: 0 12px; padding-bottom: 10px;}
+      .page { padding-top: calc(var(--nav-total) + 20px); }
+      .search-input-row { flex-direction: column; }
+      .search-input-row input,
+      .search-input-row select,
+      .search-input-row .btn-search { width: 100%; }
+      .nav-logo { font-size: 15px; margin-bottom: 6px;}
+      .nav-link { padding: 7px 8px; font-size: 11px; }
+      .nav-links { justify-content: center; }
+    }
   </style>
 </head>
 <body>
 
 <nav>
-  <span class="nav-logo">Ottey's <em>Fish</em></span>
+  <span class="nav-logo">Adventure Sightings</span>
   <div class="nav-links">
     <a href="index.html" class="nav-link">Gallery</a>
-    <a href="fishPage.php" class="nav-link">All fish</a>
-    <a href="add_sighting.html" class="nav-link nav-link-primary">+ Add sighting</a>
+    <a href="fishPage.php" class="nav-link">All sightings</a>
   </div>
 </nav>
 
 <div class="page">
   <div class="page-header">
     <h1>Add a sighting</h1>
-    <p>Search WoRMS to identify the species, then log where and when you saw it.</p>
+    <p>Search species database to find the species, then log where and when you saw it.</p>
   </div>
 
   <div id="status" class="status"></div>
@@ -185,7 +249,10 @@
           </div>
           <div class="form-group">
             <label for="location">Location</label>
-            <input type="text" id="location" placeholder="e.g. Great Barrier Reef">
+            <div style="display:flex;gap:8px">
+              <input type="text" id="location" placeholder="e.g. Great Barrier Reef" style="flex:1">
+              <button type="button" onclick="openMap()" style="font-size:13px;padding:9px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-family:inherit;white-space:nowrap;color:#374151;transition:background 0.15s" onmouseover="this.style.background='#ff6347'" onmouseout="this.style.background='#fff'">Map</button>
+            </div>
           </div>
         </div>
         <div class="form-group">
@@ -197,7 +264,7 @@
 
     <!-- SPECIES -->
     <div class="form-card">
-      <div class="section-head">Species — WoRMS lookup</div>
+      <div class="section-head">Species — database lookup</div>
       <div class="form-body">
 
         <!-- Search row — only shown when no species selected -->
@@ -297,11 +364,6 @@
         <input type="hidden" id="f-rank">
         <input type="hidden" id="f-family">
 
-        <!-- Ocean field stays visible -->
-        <div class="form-group" id="ocean-group" style="display:none">
-          <label for="f-ocean">Ocean / region <span style="font-size:11px;color:#9ca3af">(optional)</span></label>
-          <input type="text" id="f-ocean" placeholder="e.g. Pacific">
-        </div>
 
       </div>
     </div>
@@ -327,6 +389,20 @@
   </form>
 </div>
 
+<div id="map-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:24px">
+  <div style="background:#fff;border-radius:14px;overflow:hidden;width:100%;max-width:640px;box-shadow:0 24px 64px rgba(0,0,0,0.35)">
+    <div style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb">
+      <span style="font-size:14px;font-weight:500;color:#1a1814">Tap to pin your sighting location</span>
+      <button onclick="closeMap()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#7a7166;line-height:1">&times;</button>
+    </div>
+    <div id="map" style="height:400px;width:100%"></div>
+    <div style="padding:12px 20px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <span id="map-location-preview" style="font-size:13px;color:#7a7166;flex:1">Click the map to drop a pin…</span>
+      <button id="map-confirm-btn" onclick="confirmMapLocation()" disabled style="font-size:13px;font-weight:500;padding:8px 18px;border-radius:8px;border:none;background:#9dc4b4;color:#fff;cursor:not-allowed;font-family:inherit">Use this location</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── State ─────────────────────────────────────────────────────────────────────
 let selectedSpecies = null;
@@ -341,6 +417,91 @@ const WORMS = 'https://www.marinespecies.org/rest';
     if (res.ok) knownFish = await res.json();
   } catch(e) {}
 })();
+
+
+// ── Map picker ────────────────────────────────────────────────────────────────
+let _map = null;
+let _mapMarker = null;
+let _pendingLocation = null;
+
+function openMap() {
+  const modal = document.getElementById('map-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Init map only once
+  if (!_map) {
+    _map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(_map);
+
+    _map.on('click', async (e) => {
+      const { lat, lng } = e.latlng;
+
+      // Drop/move marker
+      if (_mapMarker) {
+        _mapMarker.setLatLng([lat, lng]);
+      } else {
+        _mapMarker = L.marker([lat, lng]).addTo(_map);
+      }
+
+      document.getElementById('map-location-preview').textContent = 'Looking up location…';
+      document.getElementById('map-confirm-btn').disabled = true;
+      document.getElementById('map-confirm-btn').style.background = '#9dc4b4';
+      document.getElementById('map-confirm-btn').style.cursor = 'not-allowed';
+
+      // Reverse geocode with Nominatim
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await res.json();
+        const place = buildPlaceName(data);
+        _pendingLocation = place;
+        document.getElementById('map-location-preview').textContent = place;
+      } catch(e) {
+        _pendingLocation = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        document.getElementById('map-location-preview').textContent = _pendingLocation;
+      }
+
+      document.getElementById('map-confirm-btn').disabled = false;
+      document.getElementById('map-confirm-btn').style.background = '#2d6a4f';
+      document.getElementById('map-confirm-btn').style.cursor = 'pointer';
+    });
+  }
+
+  // Invalidate size in case modal was hidden on init
+  setTimeout(() => _map.invalidateSize(), 100);
+
+  // Try to center on current location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      _map.setView([pos.coords.latitude, pos.coords.longitude], 10);
+    });
+  }
+}
+
+function buildPlaceName(data) {
+  const a = data.address || {};
+  const parts = [
+    a.nature_reserve || a.protected_area || a.bay || a.sea ||
+    a.ocean || a.reef || a.beach || a.suburb || a.village ||
+    a.town || a.city,
+    a.state || a.county,
+    a.country
+  ].filter(Boolean);
+  return parts.join(', ') || data.display_name || 'Unknown location';
+}
+
+function confirmMapLocation() {
+  if (!_pendingLocation) return;
+  document.getElementById('location').value = _pendingLocation;
+  closeMap();
+}
+
+function closeMap() {
+  document.getElementById('map-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
 
 // ── Chordata check ────────────────────────────────────────────────────────────
 // Some records (especially from vernacular search) don't include phylum.
@@ -375,6 +536,7 @@ async function fetchWikipediaDescription(sciName, commonName) {
           extract:   data.extract,
           url:       data.content_urls?.desktop?.page || null,
           thumbnail: data.thumbnail?.source || null,
+          title:     data.title || null,
         };
       }
     } catch (e) {}
@@ -394,7 +556,7 @@ async function wormsSearch() {
   const btn = document.getElementById('btn-worms-search');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>';
-  showResults('<div class="search-message">Searching WoRMS…</div>');
+  showResults('<div class="search-message">Searching database…</div>');
 
   try {
     const ql = q.toLowerCase();
@@ -524,54 +686,29 @@ async function wormsSearch() {
     });
     scored.sort((a, b) => b._score - a._score);
 
-    // ── Phase 6: fetch Wikipedia data per species ──
-    // Strategy: fetch by scientific name first (most precise), then common name.
-    // Use the Wikipedia response to get a thumbnail, and crucially to VERIFY the
-    // common name — if the WoRMS vernacular doesn't match the query but the
-    // Wikipedia title does, prefer the Wikipedia title (only when it's clearly a
-    // common name, i.e. doesn't look like a scientific name: "Genus species").
+    // ── Phase 6: fetch Wikipedia thumbnails (all candidates, in parallel) ──
     const candidates = scored.slice(0, 30);
     showResults(`<div class="search-message">Loading photos for ${candidates.length} species…</div>`);
-
-    const looksScientific = (s) => /^[A-Z][a-z]+ [a-z]+/.test(s); // "Genus species" pattern
-
     const withThumb = await Promise.all(
       candidates.map(async r => {
         let thumb = null;
-        let correctedCommon = r._common; // start with WoRMS vernacular
-
-        // Try scientific name first — most specific
-        try {
-          const encoded = encodeURIComponent(r.scientificname.replace(/ /g, '_'));
-          const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.type !== 'disambiguation') {
-              if (data.thumbnail?.source) thumb = data.thumbnail.source;
-              // If the Wikipedia article title is a common name (not scientific),
-              // use it to correct a wrong or missing WoRMS vernacular
-              if (data.title && !looksScientific(data.title)) {
-                correctedCommon = data.title;
-              }
-            }
-          }
-        } catch(e) {}
-
-        // Fall back to common name search if no thumbnail yet
-        if (!thumb && r._common) {
+        let wikiTitle = null;
+        const names = [r.scientificname, r._common].filter(Boolean);
+        for (const name of names) {
           try {
-            const encoded = encodeURIComponent(r._common.replace(/ /g, '_'));
+            const encoded = encodeURIComponent(name.replace(/ /g, '_'));
             const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`);
             if (res.ok) {
               const data = await res.json();
-              if (data.type !== 'disambiguation' && data.thumbnail?.source) {
-                thumb = data.thumbnail.source;
+              if (data.type !== 'disambiguation') {
+                if (data.thumbnail?.source) thumb = data.thumbnail.source;
+                if (data.title && !wikiTitle) wikiTitle = data.title;
+                if (thumb) break;
               }
             }
           } catch(e) {}
         }
-
-        return { ...r, _thumb: thumb, _common: correctedCommon };
+        return { ...r, _thumb: thumb, _wikiTitle: wikiTitle };
       })
     );
 
@@ -633,10 +770,8 @@ async function wormsSearch() {
     }
 
     withThumb.forEach(r => {
-      // Use WoRMS English vernacular as display name — Wikipedia titles are
-      // often the scientific name so we don't use them here
-      const displayName = r._common
-        ? r._common.charAt(0).toUpperCase() + r._common.slice(1)
+      const displayName = r._wikiTitle || r._common
+        ? (r._wikiTitle || r._common).charAt(0).toUpperCase() + (r._wikiTitle || r._common).slice(1)
         : r.scientificname;
       const subLine = r._common ? r.scientificname : '';
       const rankBadge = r.rank
@@ -668,7 +803,7 @@ async function wormsSearch() {
         text.appendChild(sci);
       }
       item.appendChild(text);
-      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || ''));
+      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', r._wikiTitle || r._common || ''));
       container.appendChild(item);
     });
 
@@ -709,7 +844,6 @@ function selectKnownFish(f) {
   document.getElementById('species-card').classList.add('visible');
   document.getElementById('search-panel').style.display  = 'none';
   document.getElementById('manual-toggle').style.display = 'none';
-  document.getElementById('ocean-group').style.display   = 'block';
 
   selectedSpecies = {
     aphiaId:    f.aphia_id   || '',
@@ -724,7 +858,7 @@ function selectKnownFish(f) {
   };
 
   // Populate hidden fields
-  document.getElementById('f-aphia-id').value = f.aphia_id  || '0';
+  document.getElementById('f-aphia-id').value = f.aphia_id  || '';
   document.getElementById('f-sci').value      = sci || common;
   document.getElementById('f-common').value   = common;
   document.getElementById('f-habitat').value  = habitat;
@@ -792,10 +926,9 @@ function selectManual(e) {
   document.getElementById('search-panel').style.display  = 'none';
   document.getElementById('manual-toggle').style.display = 'none';
   document.getElementById('manual-panel').style.display  = 'none';
-  document.getElementById('ocean-group').style.display   = 'block';
 
   // Populate hidden fields
-  document.getElementById('f-aphia-id').value = '0'; // 0 = manual entry, no WoRMS ID
+  document.getElementById('f-aphia-id').value = '';
   document.getElementById('f-sci').value      = sci || common;
   document.getElementById('f-common').value   = common;
   document.getElementById('f-habitat').value  = habitat;
@@ -819,7 +952,7 @@ document.getElementById('worms-query').addEventListener('keydown', e => {
 });
 
 // ── Select species ────────────────────────────────────────────────────────────
-async function selectSpecies(aphiaId, sciName, status) {
+async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   hideResults();
 
   // Show loading state immediately
@@ -828,7 +961,6 @@ async function selectSpecies(aphiaId, sciName, status) {
   document.getElementById('sc-desc').innerHTML     = '<span class="species-desc-loading">Fetching species data…</span>';
   document.getElementById('species-card').classList.add('visible');
   document.getElementById('search-panel').style.display = 'none';
-  document.getElementById('ocean-group').style.display  = 'block';
 
   // Resolve synonym → accepted record
   let resolvedId = aphiaId, resolvedName = sciName;
@@ -850,9 +982,10 @@ async function selectSpecies(aphiaId, sciName, status) {
     fetch(`${WORMS}/AphiaAttributesByAphiaID/${resolvedId}`).then(r => r.ok ? r.json() : []).catch(() => []),
   ]);
 
-  // Common name
-  let commonName = '';
-  if (Array.isArray(verns) && verns.length) {
+  // Common name — prefer searchCommonName from WoRMS vernacular lookup,
+  // will be overridden by Wikipedia title below
+  let commonName = searchCommonName || '';
+  if (!commonName && Array.isArray(verns) && verns.length) {
     const eng = verns.find(v => v.language_code === 'eng');
     if (eng) commonName = eng.vernacular;
   }
@@ -891,6 +1024,11 @@ async function selectSpecies(aphiaId, sciName, status) {
   const wiki = await fetchWikipediaDescription(resolvedName, commonName);
   if (wiki) {
     description = wiki.extract;
+    // Always prefer Wikipedia title as the common name — it's more reliable
+    if (wiki.title) {
+      commonName = wiki.title;
+      document.getElementById('sc-common').textContent = commonName;
+    }
     // Show photo in card header
     if (wiki.thumbnail) {
       const img = document.getElementById('sc-photo');
@@ -957,7 +1095,6 @@ function clearFish() {
   document.getElementById('search-panel').style.display  = 'block';
   document.getElementById('manual-toggle').style.display = 'block';
   document.getElementById('manual-panel').style.display  = 'none';
-  document.getElementById('ocean-group').style.display   = 'none';
   document.getElementById('f-aphia-id').value = '';
   document.getElementById('worms-query').value = '';
   const img = document.getElementById('sc-photo');
@@ -1014,6 +1151,8 @@ document.getElementById('form').addEventListener('submit', async function(e) {
   if (!date)             { showStatus('Please enter a sighting date.', 'err'); return; }
   if (!selectedSpecies)  { showStatus('Please search for and select a species.', 'err'); return; }
 
+  if (!confirm(`Save sighting of ${selectedSpecies.commonName || selectedSpecies.sciName}?`)) return;
+
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Saving…';
@@ -1022,11 +1161,10 @@ document.getElementById('form').addEventListener('submit', async function(e) {
   fd.append('sighting_date',   date);
   fd.append('location',        document.getElementById('location').value);
   fd.append('notes',           document.getElementById('notes').value);
-  fd.append('aphia_id',        selectedSpecies.aphiaId || '0');
+  fd.append('aphia_id',        selectedSpecies.aphiaId);
   fd.append('scientific_name', selectedSpecies.sciName);
   fd.append('common_name',     selectedSpecies.commonName || selectedSpecies.sciName);
   fd.append('habitat',         selectedSpecies.habitat);
-  fd.append('ocean',           document.getElementById('f-ocean').value);
   fd.append('description',     selectedSpecies.description);
   fd.append('family',          selectedSpecies.family || '');
 
