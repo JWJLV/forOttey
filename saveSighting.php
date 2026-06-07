@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $sighting_date   = trim($_POST['sighting_date']   ?? '');
 $location        = trim($_POST['location']         ?? '');
 $notes           = trim($_POST['notes']            ?? '');
-$aphia_id        = intval($_POST['aphia_id']       ?? 0);
+$aphia_id = !empty($_POST['aphia_id']) ? intval($_POST['aphia_id']) : null;
 $scientific_name = trim($_POST['scientific_name']  ?? '');
 $common_name     = trim($_POST['common_name']      ?? '');
 $habitat         = trim($_POST['habitat']          ?? '');
@@ -36,7 +36,7 @@ try {
     // ALTER TABLE fish_entries ADD COLUMN aphia_id INT DEFAULT NULL UNIQUE;
 
     $existing = false;
-    if ($aphia_id > 0) {
+    if ($aphia_id) {
         $stmt = $pdo->prepare("SELECT fish_id FROM fish_entries WHERE aphia_id = ? LIMIT 1");
         $stmt->execute([$aphia_id]);
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
