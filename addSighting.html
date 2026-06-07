@@ -1025,10 +1025,12 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   if (wiki) {
     description = wiki.extract;
     // Always prefer Wikipedia title as the common name — it's more reliable
-    if (wiki.title) {
+    // Use Wikipedia title unless it's the same as the scientific name
+    if (wiki.title && wiki.title.toLowerCase() !== resolvedName.toLowerCase()) {
       commonName = wiki.title;
       document.getElementById('sc-common').textContent = commonName;
     }
+// if wiki title is the scientific name, keep whatever commonName was already set
     // Show photo in card header
     if (wiki.thumbnail) {
       const img = document.getElementById('sc-photo');
