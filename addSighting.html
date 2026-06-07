@@ -770,10 +770,11 @@ async function wormsSearch() {
     }
 
     withThumb.forEach(r => {
-      const displayName = r._wikiTitle || r._common
-        ? (r._wikiTitle || r._common).charAt(0).toUpperCase() + (r._wikiTitle || r._common).slice(1)
-        : r.scientificname;
-      const subLine = r._common ? r.scientificname : '';
+      const rawTitle = r._wikiTitle || '';
+      const looksScientific = /^[A-Z][a-z]+ [a-z]+$/.test(rawTitle);
+      const bestName = (!looksScientific && rawTitle) ? rawTitle : (r._common || r.scientificname);
+      const displayName = bestName.charAt(0).toUpperCase() + bestName.slice(1);
+      const subLine = r._common ? r.scientificname : ''; 
       const rankBadge = r.rank
         ? `<span style="font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:#e8f4f0;color:#2d6a4f;margin-left:6px">${r.rank}</span>`
         : '';
@@ -803,7 +804,7 @@ async function wormsSearch() {
         text.appendChild(sci);
       }
       item.appendChild(text);
-      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', r._wikiTitle || r._common || ''));
+      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', (!looksScientific && rawTitle) ? rawTitle : (r._common || '')));
       container.appendChild(item);
     });
 
@@ -1024,9 +1025,15 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   const wiki = await fetchWikipediaDescription(resolvedName, commonName);
   if (wiki) {
     description = wiki.extract;
-    // Always prefer Wikipedia title as the common name — it's more reliable
-    if (wiki.title) {
+    // Only use Wikipedia title if it doesn't look like a scientific name
+    // (scientific names are typically two italic Latin words e.g. "Rhincodon typus")
+    const looksScientific = /^[A-Z][a-z]+ [a-z]+$/.test(wiki.title);
+    if (wiki.title && !looksScientific) {
       commonName = wiki.title;
+      document.getElementById('sc-common').textContent = commonName;
+    } else if (looksScientific && searchCommonName) {
+      // Keep the searchCommonName if wiki title is just the scientific name
+      commonName = searchCommonName;
       document.getElementById('sc-common').textContent = commonName;
     }
     // Show photo in card header
