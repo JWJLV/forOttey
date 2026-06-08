@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Adventure Sightings">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="apple-touch-icon" href="/pwa-icons/icon-192-maskable.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -16,73 +17,143 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --sand:    #fdf6ec;
-      --ink:     #0d2b3e;
-      --muted:   #6b9aaa;
-      --accent:  #1a8fa0;
-      --accent2: #e8603c;
-      --accent3: #f4a44b;
-      --border:  #cde0e8;
-      --nav-h:   64px;
+      --sand:    #fdf6ec;  /* warm shell white, keeps the softness */
+      --ink:     #0d2b3e;  /* deep ocean navy instead of near-black */
+      --muted:   #6b9aaa;  /* sea-haze blue-grey */
+      --accent:  #1a8fa0;  /* tropical teal — your main CTA/link colour */
+      --accent2: #e8603c;  /* true coral — vivid, warm, very "reef" */
+      --accent3: #f4a44b;  /* golden damselfish — optional highlight */
+      --border: #cde0e8;  /* pale ocean mist — warm but with a hint of sea */
+      --nav-h: 64px; 
       --nav-total: calc(var(--nav-h) + env(safe-area-inset-top));
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--ink); min-height: 100vh; }
 
+    /* NAV */
     nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      height: calc(var(--nav-h) + env(safe-area-inset-top));
-      padding-top: env(safe-area-inset-top);
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: calc(var(--nav-h) + env(safe-area-inset-top));  /* background covers notch */
+      padding-top: env(safe-area-inset-top);                   /* push content below notch */
       padding-left: max(32px, env(safe-area-inset-left));
       padding-right: max(32px, env(safe-area-inset-right));
       background: var(--ink);
-      display: flex; align-items: flex-end; justify-content: space-between;
-      padding-bottom: 18px; z-index: 100;
+      display: flex;
+      align-items: flex-end;                                   /* anchor to bottom of bar */
+      justify-content: space-between;
+      padding-bottom: 18px;                                  /* breathing room from edge */
+      z-index: 100;
     }
-    .nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--sand); letter-spacing: 0.01em; }
-    .nav-logo em { font-style: italic; color: #a8c5b5; }
-    .nav-links { display: flex; align-items: center; gap: 8px; }
-    .nav-link { font-size: 13px; color: #b8b0a4; text-decoration: none; padding: 7px 16px; border-radius: 6px; transition: background 0.15s, color 0.15s; white-space: nowrap; }
-    .nav-link:hover { background: rgba(255,255,255,0.08); color: #fffdf9; }
-    .nav-link-primary { background: var(--accent); color: #fffdf9 !important; font-weight: 500; }
-    .nav-link-primary:hover { background: #127a8a; }
 
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--sand);
+      letter-spacing: 0.01em;
+    }
+    .nav-logo em { font-style: italic; color: #a8c5b5; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 400;
+      color: #b8b0a4;
+      text-decoration: none;
+      padding: 7px 16px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .nav-link:hover { background: rgba(255,255,255,0.08); color: #fffdf9; }
+
+    .nav-link-primary {
+      background: var(--accent);
+      color: #fffdf9 !important;
+      font-weight: 500;
+      justify-content: center;
+      text-align: center;
+    }
+    .nav-link-primary:hover { background: #245c43; }
+
+    /* PAGE */
     .page { max-width: 700px; margin: 0 auto; padding: calc(var(--nav-total) + 32px) 20px 60px; }
     .page-header { margin-bottom: 28px; }
     .page-header h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
     .page-header p { font-size: 14px; color: var(--muted); margin-top: 4px; font-weight: 300; }
 
-    .form-card { background: #fffdf9; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 18px; }
-    .section-head { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 13px 20px; border-bottom: 1px solid var(--border); background: #f9f7f3; border-radius: 14px 14px 0 0; }
+    /* CARDS */
+    .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+             margin-bottom: 18px; }
+    .section-head { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+                    color: var(--muted); padding: 13px 20px; border-bottom: 1px solid var(--border); background: #f9f7f3;
+                    border-radius: 14px 14px 0 0; }
     .form-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .form-group { display: flex; flex-direction: column; gap: 5px; }
     label { font-size: 13px; font-weight: 500; color: #374151; }
-    input, select, textarea { font-size: 14px; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: var(--ink); outline: none; font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
-    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,143,160,0.12); }
+    input, select, textarea {
+      font-size: 14px; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+      background: #fff; color: var(--ink); outline: none; font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,106,79,0.12);
+    }
     input[readonly] { background: #f5f2ec; color: var(--muted); cursor: default; }
     textarea { resize: vertical; min-height: 88px; }
     .req { color: #ef4444; margin-left: 2px; }
 
+    /* WORMS SEARCH */
     .search-wrap { position: relative; }
     .search-input-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .search-input-row input { flex: 1; min-width: 0; }
-    .btn-search { font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; white-space: nowrap; font-family: inherit; transition: background 0.15s; }
-    .btn-search:hover { background: #127a8a; }
+    .btn-search {
+      font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: 8px;
+      border: 1px solid var(--accent); background: var(--accent); color: #fff;
+      cursor: pointer; white-space: nowrap; font-family: inherit; transition: background 0.15s;
+    }
+    .btn-search:hover { background: #245c43; }
     .btn-search:disabled { background: #9dc4b4; border-color: #9dc4b4; cursor: not-allowed; }
 
-    .search-results { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 50; max-height: 320px; overflow-y: auto; }
-    .search-result-item { padding: 11px 16px; cursor: pointer; border-bottom: 1px solid #f3f0ea; transition: background 0.1s; }
+    .search-results {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: #fff; border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 50; max-height: 260px; overflow-y: auto;
+    }
+    .search-result-item {
+      padding: 11px 16px; cursor: pointer; border-bottom: 1px solid #f3f0ea;
+      transition: background 0.1s;
+    }
     .search-result-item:last-child { border-bottom: none; }
-    .search-result-item:hover { background: #f0f8fa; }
+    .search-result-item:hover { background: #f5f0e8; }
+    .result-sci { font-size: 14px; font-weight: 500; font-style: italic; }
+    .result-common { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .result-rank { font-size: 11px; color: #9ca3af; float: right; margin-top: 2px; }
     .search-message { padding: 14px 16px; font-size: 13px; color: var(--muted); text-align: center; }
 
-    .species-card { display: none; flex-direction: column; gap: 0; border: 1px solid #a7d4bc; border-radius: 10px; overflow: hidden; }
+    /* SPECIES CARD */
+    .species-card {
+      display: none; flex-direction: column; gap: 0;
+      border: 1px solid #a7d4bc; border-radius: 10px; overflow: hidden;
+    }
     .species-card.visible { display: flex; }
-    .species-card-header { background: #edf7f2; padding: 14px 18px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .species-card-header {
+      background: #edf7f2; padding: 14px 18px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
     .species-card-names { flex: 1; }
     .species-card-common { font-size: 18px; font-weight: 600; color: var(--ink); }
     .species-card-sci { font-size: 13px; font-style: italic; color: var(--muted); margin-top: 2px; }
-    .species-card-rank { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; background: #d1f0e4; color: #1a5e3f; white-space: nowrap; margin-left: 10px; margin-top: 2px; }
+    .species-card-rank {
+      font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 4px; background: #d1f0e4; color: #1a5e3f; white-space: nowrap; margin-left: 10px; margin-top: 2px;
+    }
     .species-card-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
     .species-meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
     .species-meta-item { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 140px; }
@@ -93,42 +164,57 @@
     .species-desc a { color: var(--accent); text-decoration: none; font-size: 12px; }
     .species-desc a:hover { text-decoration: underline; }
     .species-card-footer { padding: 8px 14px; border-top: 1px solid #d1ead9; background: #f5fdf8; display: flex; justify-content: flex-end; }
-    .btn-clear { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-family: inherit; }
-    .btn-clear:hover { color: var(--ink); }
 
-    .drop-zone { border: 2px dashed #d1d5db; border-radius: 10px; padding: 28px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    /* PHOTOS */
+    .drop-zone {
+      border: 2px dashed #d1d5db; border-radius: 10px; padding: 28px 20px;
+      text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
     .drop-zone:hover, .drop-zone.over { border-color: var(--accent); background: #f0faf5; }
     .drop-zone .icon { font-size: 24px; margin-bottom: 6px; }
     .drop-zone p { font-size: 13px; color: var(--muted); }
     .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 10px; margin-top: 12px; }
     .photo-thumb { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
     .photo-thumb img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-    .photo-thumb input { width: 100%; font-size: 12px; padding: 5px 8px; border: none; border-top: 1px solid var(--border); border-radius: 0; outline: none; }
-    .photo-remove { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .photo-thumb input { width: 100%; font-size: 12px; padding: 5px 8px; border: none;
+                         border-top: 1px solid var(--border); border-radius: 0; outline: none; }
+    .photo-remove { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px;
+                    background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%;
+                    font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-    .form-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); background: #f9f7f3; border-radius: 0 0 14px 14px; }
-    .btn { font-size: 14px; font-weight: 500; padding: 9px 20px; border-radius: 8px; border: 1px solid #d1d5db; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    /* FOOTER */
+    .form-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px;
+                   border-top: 1px solid var(--border); background: #f9f7f3;
+                   border-radius: 0 0 14px 14px; }
+    .btn { font-size: 14px; font-weight: 500; padding: 9px 20px; border-radius: 8px;
+           border: 1px solid #d1d5db; cursor: pointer; font-family: inherit; transition: all 0.15s; }
     .btn-ghost { background: #fff; color: #374151; text-decoration: none; display: inline-flex; align-items: center; }
     .btn-ghost:hover { background: #f3f4f6; }
     .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .btn-primary:hover { background: #127a8a; }
+    .btn-primary:hover { background: #245c43; }
     .btn-primary:disabled { background: #9dc4b4; border-color: #9dc4b4; cursor: not-allowed; }
 
+    /* STATUS */
     .status { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; display: none; }
     .status.ok  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; display: block; }
     .status.err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; display: block; }
 
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
+    /* SPINNER */
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4);
+               border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    @media (max-width:580px) {
-      .form-row { grid-template-columns: 1fr; }
-      nav { padding: 0 12px; padding-bottom: 10px; }
+    @media (max-width:580px) { 
+      .form-row { grid-template-columns: 1fr; } 
+      nav { padding: 0 12px; padding-bottom: 10px;}
       .page { padding-top: calc(var(--nav-total) + 20px); }
       .search-input-row { flex-direction: column; }
-      .search-input-row input, .search-input-row select, .search-input-row .btn-search { width: 100%; }
-      .nav-logo { font-size: 15px; }
+      .search-input-row input,
+      .search-input-row select,
+      .search-input-row .btn-search { width: 100%; }
+      .nav-logo { font-size: 15px; margin-bottom: 6px;}
       .nav-link { padding: 7px 8px; font-size: 11px; }
+      .nav-links { justify-content: center; }
     }
   </style>
 </head>
@@ -145,7 +231,7 @@
 <div class="page">
   <div class="page-header">
     <h1>Add a sighting</h1>
-    <p>Search the species database, then log where and when you saw it.</p>
+    <p>Search species database to find the species, then log where and when you saw it.</p>
   </div>
 
   <div id="status" class="status"></div>
@@ -165,7 +251,7 @@
             <label for="location">Location</label>
             <div style="display:flex;gap:8px">
               <input type="text" id="location" placeholder="e.g. Great Barrier Reef" style="flex:1">
-              <button type="button" onclick="openMap()" style="font-size:13px;padding:9px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-family:inherit;white-space:nowrap;color:#374151;transition:background 0.15s" onmouseover="this.style.background='#e8f8fa'" onmouseout="this.style.background='#fff'">📍 Map</button>
+              <button type="button" onclick="openMap()" style="font-size:13px;padding:9px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-family:inherit;white-space:nowrap;color:#374151;transition:background 0.15s" onmouseover="this.style.background='#ff6347'" onmouseout="this.style.background='#fff'">Map</button>
             </div>
           </div>
         </div>
@@ -181,6 +267,7 @@
       <div class="section-head">Species — database lookup</div>
       <div class="form-body">
 
+        <!-- Search row — only shown when no species selected -->
         <div id="search-panel">
           <div class="form-group">
             <label for="worms-query">Search by name <span class="req">*</span></label>
@@ -230,7 +317,7 @@
           </div>
         </div>
 
-        <!-- Species info card -->
+        <!-- Species info card — shown after selection -->
         <div class="species-card" id="species-card">
           <div class="species-card-header">
             <img id="sc-photo" src="" alt="" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;margin-right:14px;border:1px solid #a7d4bc">
@@ -268,6 +355,7 @@
           </div>
         </div>
 
+        <!-- Hidden fields sent on submit -->
         <input type="hidden" id="f-aphia-id">
         <input type="hidden" id="f-sci">
         <input type="hidden" id="f-common">
@@ -275,6 +363,8 @@
         <input type="hidden" id="f-desc">
         <input type="hidden" id="f-rank">
         <input type="hidden" id="f-family">
+
+
       </div>
     </div>
 
@@ -299,8 +389,7 @@
   </form>
 </div>
 
-<!-- MAP MODAL -->
-<div id="map-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;padding:24px">
+<div id="map-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:24px">
   <div style="background:#fff;border-radius:14px;overflow:hidden;width:100%;max-width:640px;box-shadow:0 24px 64px rgba(0,0,0,0.35)">
     <div style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e7eb">
       <span style="font-size:14px;font-weight:500;color:#1a1814">Tap to pin your sighting location</span>
@@ -318,9 +407,10 @@
 // ── State ─────────────────────────────────────────────────────────────────────
 let selectedSpecies = null;
 let photoFiles = [];
-let knownFish = [];
+let knownFish = []; // fish already logged, shown at top of search results
 const WORMS = 'https://www.marinespecies.org/rest';
 
+// Load already-logged fish on startup
 (async () => {
   try {
     const res = await fetch('get_fish.php');
@@ -328,40 +418,61 @@ const WORMS = 'https://www.marinespecies.org/rest';
   } catch(e) {}
 })();
 
+
 // ── Map picker ────────────────────────────────────────────────────────────────
-let _map = null, _mapMarker = null, _pendingLocation = null;
+let _map = null;
+let _mapMarker = null;
+let _pendingLocation = null;
 
 function openMap() {
   const modal = document.getElementById('map-modal');
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+
+  // Init map only once
   if (!_map) {
     _map = L.map('map').setView([20, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(_map);
+
     _map.on('click', async (e) => {
       const { lat, lng } = e.latlng;
-      if (_mapMarker) _mapMarker.setLatLng([lat, lng]);
-      else _mapMarker = L.marker([lat, lng]).addTo(_map);
+
+      // Drop/move marker
+      if (_mapMarker) {
+        _mapMarker.setLatLng([lat, lng]);
+      } else {
+        _mapMarker = L.marker([lat, lng]).addTo(_map);
+      }
+
       document.getElementById('map-location-preview').textContent = 'Looking up location…';
       document.getElementById('map-confirm-btn').disabled = true;
       document.getElementById('map-confirm-btn').style.background = '#9dc4b4';
+      document.getElementById('map-confirm-btn').style.cursor = 'not-allowed';
+
+      // Reverse geocode with Nominatim
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
         const data = await res.json();
-        _pendingLocation = buildPlaceName(data);
-        document.getElementById('map-location-preview').textContent = _pendingLocation;
+        const place = buildPlaceName(data);
+        _pendingLocation = place;
+        document.getElementById('map-location-preview').textContent = place;
       } catch(e) {
         _pendingLocation = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         document.getElementById('map-location-preview').textContent = _pendingLocation;
       }
+
       document.getElementById('map-confirm-btn').disabled = false;
-      document.getElementById('map-confirm-btn').style.background = 'var(--accent)';
+      document.getElementById('map-confirm-btn').style.background = '#2d6a4f';
       document.getElementById('map-confirm-btn').style.cursor = 'pointer';
     });
   }
+
+  // Invalidate size in case modal was hidden on init
   setTimeout(() => _map.invalidateSize(), 100);
+
+  // Try to center on current location
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
       _map.setView([pos.coords.latitude, pos.coords.longitude], 10);
@@ -373,8 +484,10 @@ function buildPlaceName(data) {
   const a = data.address || {};
   const parts = [
     a.nature_reserve || a.protected_area || a.bay || a.sea ||
-    a.ocean || a.reef || a.beach || a.suburb || a.village || a.town || a.city,
-    a.state || a.county, a.country
+    a.ocean || a.reef || a.beach || a.suburb || a.village ||
+    a.town || a.city,
+    a.state || a.county,
+    a.country
   ].filter(Boolean);
   return parts.join(', ') || data.display_name || 'Unknown location';
 }
@@ -390,67 +503,32 @@ function closeMap() {
   document.body.style.overflow = '';
 }
 
-// ── Allowed phyla ─────────────────────────────────────────────────────────────
+// ── Chordata check ────────────────────────────────────────────────────────────
+// Some records (especially from vernacular search) don't include phylum.
+// This fetches the full record to verify membership in Chordata.
+// ── Allowed phyla check ───────────────────────────────────────────────────────
 const ALLOWED_PHYLA = ['Chordata', 'Mollusca', 'Arthropoda', 'Echinodermata'];
 
 async function isAllowedPhylum(record) {
   if (record.phylum) return ALLOWED_PHYLA.includes(record.phylum);
   try {
-    const r = await fetch(`${WORMS}/AphiaRecordByAphiaID/${record.AphiaID}`);
+    const r   = await fetch(`${WORMS}/AphiaRecordByAphiaID/${record.AphiaID}`);
     const rec = await r.json();
     return ALLOWED_PHYLA.includes(rec?.phylum);
-  } catch(e) { return false; }
+  } catch (e) {
+    return false;
+  }
 }
 
-// ── FishBase ──────────────────────────────────────────────────────────────────
-// Authoritative source for common names and descriptions.
-// Uses fishbase.ropensci.org — free, no key required.
-async function fetchFishBaseData(sciName) {
-  try {
-    const parts = sciName.trim().split(' ');
-    if (parts.length < 2) return null;
-    const [genus, species] = parts;
-    const res = await fetch(
-      `https://fishbase.ropensci.org/species?genus=${encodeURIComponent(genus)}&species=${encodeURIComponent(species)}`,
-      { headers: { 'Accept': 'application/json' } }
-    );
-    if (!res.ok) return null;
-    const json = await res.json();
-    const rec = json?.data?.[0];
-    if (!rec) return null;
-    const descParts = [rec.Comments, rec.Distribution].filter(Boolean);
-    return {
-      commonName:  rec.FBname   || null,
-      description: descParts.join(' ').trim() || null,
-      maxLength:   rec.Length   ? `${rec.Length} cm` : null,
-      depthRange:  (rec.DepthRangeShallow != null && rec.DepthRangeDeep != null)
-                     ? `${rec.DepthRangeShallow}–${rec.DepthRangeDeep} m` : null,
-    };
-  } catch(e) { return null; }
-}
-
-// ── Wikipedia photo only ──────────────────────────────────────────────────────
-// Returns a thumbnail URL — no name extraction to avoid cross-species confusion.
-async function fetchWikiPhoto(sciName, commonName) {
-  const WIKI = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
-  const tryName = async (name) => {
-    try {
-      const res = await fetch(`${WIKI}${encodeURIComponent(name.replace(/ /g, '_'))}`);
-      if (!res.ok) return null;
-      const data = await res.json();
-      if (data.type === 'disambiguation') return null;
-      return data.thumbnail?.source || null;
-    } catch(e) { return null; }
-  };
-  return (await tryName(sciName)) || (commonName ? await tryName(commonName) : null);
-}
-
-// ── Wikipedia description (for species card after selection) ──────────────────
+// ── Wikipedia description ─────────────────────────────────────────────────────
+// Tries scientific name first, then common name. Returns { extract, url } or null.
 async function fetchWikipediaDescription(sciName, commonName) {
   const WIKI = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
+
   const tryName = async (name) => {
     try {
-      const res = await fetch(`${WIKI}${encodeURIComponent(name.replace(/ /g, '_'))}`);
+      const encoded = encodeURIComponent(name.replace(/ /g, '_'));
+      const res = await fetch(`${WIKI}${encoded}`);
       if (!res.ok) return null;
       const data = await res.json();
       if (data.type === 'disambiguation') return null;
@@ -459,15 +537,19 @@ async function fetchWikipediaDescription(sciName, commonName) {
           extract:   data.extract,
           url:       data.content_urls?.desktop?.page || null,
           thumbnail: data.thumbnail?.source || null,
+          title:     data.title || null,
         };
       }
-    } catch(e) {}
+    } catch (e) {}
     return null;
   };
+
   return (await tryName(sciName)) || (commonName ? await tryName(commonName) : null);
 }
 
 // ── WoRMS Search ──────────────────────────────────────────────────────────────
+// Strategy: search vernaculars AND scientific names, find matching genera,
+// then expand to ALL species within those genera so the user sees the full list.
 async function wormsSearch() {
   const q = document.getElementById('worms-query').value.trim();
   if (!q) return;
@@ -480,7 +562,7 @@ async function wormsSearch() {
   try {
     const ql = q.toLowerCase();
 
-    // Phase 1: search both endpoints
+    // ── Phase 1: find matching records (species + genera) via both endpoints ──
     const [sciRaw, commonRaw] = await Promise.all([
       fetch(`${WORMS}/AphiaRecordsByName/${encodeURIComponent(q)}?like=true&marine_only=true&offset=1`)
         .then(r => r.status === 204 ? [] : r.json()).catch(() => []),
@@ -488,6 +570,7 @@ async function wormsSearch() {
         .then(r => r.status === 204 ? [] : r.json()).catch(() => []),
     ]);
 
+    // Deduplicate across both result sets
     const allRaw = new Map();
     [...(sciRaw||[]), ...(commonRaw||[])].forEach(r => {
       if (r?.AphiaID && !allRaw.has(r.AphiaID)) allRaw.set(r.AphiaID, r);
@@ -498,52 +581,62 @@ async function wormsSearch() {
       return;
     }
 
-    // Phase 2: allowed phyla filter
+    // ── Phase 2: Chordata filter ──
     showResults('<div class="search-message">Finding species…</div>');
     const allRecords = [...allRaw.values()];
     const phylumChecks = await Promise.all(allRecords.map(r => isAllowedPhylum(r)));
-    const filtered = allRecords.filter((_, i) => phylumChecks[i]);
+    const chordataOnly = allRecords.filter((_, i) => phylumChecks[i]);
 
-    if (!filtered.length) {
-      showResults('<div class="search-message">No matching species found.</div>');
-      return;
+    if (!chordataOnly.length) {
+      showResults('<div class="search-message">No marine species found.</div>');
     }
 
-    // Phase 3: expand genera → child species
-    const genusRecords   = filtered.filter(r => (r.rank||'').toLowerCase() === 'genus');
-    const speciesRecords = filtered.filter(r => (r.rank||'').toLowerCase() !== 'genus');
-    let expandedSpecies  = [...speciesRecords];
+    // ── Phase 3: expand genera → get all child species ──
+    // Any genus-level hit → fetch all its species from WoRMS
+    // Any species-level hit → include directly
+    // This is what makes "clownfish" return ALL clownfish species
+    const genusRecords  = chordataOnly.filter(r => r.rank === 'Genus'  || r.rank === 'genus');
+    const speciesRecords = chordataOnly.filter(r => r.rank !== 'Genus' && r.rank !== 'genus');
+
+    let expandedSpecies = [...speciesRecords];
 
     if (genusRecords.length) {
       const childLists = await Promise.all(
         genusRecords.map(g =>
           fetch(`${WORMS}/AphiaRecordsByName/${encodeURIComponent(g.scientificname)}?like=false&marine_only=true&offset=1`)
             .then(r => r.status === 204 ? [] : r.json())
-            .then(recs => (recs||[]).filter(r => (r.rank||'').toLowerCase() === 'species'))
+            .then(recs => (recs||[]).filter(r => r.rank === 'Species' || r.rank === 'species'))
             .catch(() => [])
         )
       );
-      childLists.forEach(list => list.forEach(r => {
-        if (!expandedSpecies.find(e => e.AphiaID === r.AphiaID)) expandedSpecies.push(r);
-      }));
+      childLists.forEach(list => {
+        list.forEach(r => {
+          if (!expandedSpecies.find(e => e.AphiaID === r.AphiaID)) expandedSpecies.push(r);
+        });
+      });
     }
 
-    // Hard filter: species/subspecies only
+    // Hard filter: only rank Species (or Subspecies) — never genus/family/order
     expandedSpecies = expandedSpecies.filter(r => {
-      const rk = (r.rank||'').toLowerCase();
+      const rk = (r.rank || '').toLowerCase();
       return rk === 'species' || rk === 'subspecies';
     });
-    if (!expandedSpecies.length) expandedSpecies = filtered.filter(r => {
-      const rk = (r.rank||'').toLowerCase();
-      return rk === 'species' || rk === 'subspecies';
-    });
+
+    // If expansion left nothing, also try filtering the original Chordata records to species
     if (!expandedSpecies.length) {
-      showResults('<div class="search-message">No species found. Try a more specific name or add manually.</div>');
+      expandedSpecies = chordataOnly.filter(r => {
+        const rk = (r.rank || '').toLowerCase();
+        return rk === 'species' || rk === 'subspecies';
+      });
+    }
+
+    if (!expandedSpecies.length) {
+      showResults('<div class="search-message">No species found — only higher-level taxa matched. Try a more specific name or use "Add manually" below.</div>');
       btn.disabled = false; btn.textContent = 'Search';
       return;
     }
 
-    // Phase 4: WoRMS English vernaculars
+    // ── Phase 4: fetch English vernaculars for all species (cap at 30) ──
     const withCommon = await Promise.all(
       expandedSpecies.slice(0, 30).map(async r => {
         let common = '';
@@ -561,7 +654,7 @@ async function wormsSearch() {
       })
     );
 
-    // Phase 5: relevance scoring
+    // ── Phase 5: score by name relevance to query ──
     const queryTokens = ql.split(/\s+/).map(w => w.replace(/s$/, '').trim()).filter(Boolean);
     const tokenRelevance = (name) => {
       if (!name) return 0;
@@ -569,43 +662,59 @@ async function wormsSearch() {
       const hits = queryTokens.filter(qt => nameTokens.some(nt => nt === qt || nt.startsWith(qt)));
       return hits.length / queryTokens.length;
     };
+
     const scored = withCommon.map(r => {
-      const commonL = (r._common||'').toLowerCase(), sciL = r.scientificname.toLowerCase();
-      const commonRel = tokenRelevance(r._common), sciRel = tokenRelevance(r.scientificname);
+      const commonL   = (r._common || '').toLowerCase();
+      const sciL      = r.scientificname.toLowerCase();
+      const rank      = (r.rank || '').toLowerCase();
+      const commonRel = tokenRelevance(r._common);
+      const sciRel    = tokenRelevance(r.scientificname);
       let score = 0;
-      if (commonL === ql) score += 100;
-      else if (commonRel === 1) score += 60;
-      else if (commonRel >= 0.5) score += 30;
-      else if (commonRel > 0) score += 10;
-      if (sciL === ql) score += 80;
-      else if (sciRel === 1) score += 50;
-      else if (sciRel > 0) score += 20;
-      if ((r.rank||'').toLowerCase() === 'species') score += 25;
-      if ((r.status||'').toLowerCase() === 'accepted') score += 10;
+      if (commonL === ql)         score += 100;
+      else if (commonRel === 1)   score += 60;
+      else if (commonRel >= 0.5)  score += 30;
+      else if (commonRel > 0)     score += 10;
+      if (sciL === ql)            score += 80;
+      else if (sciRel === 1)      score += 50;
+      else if (sciRel > 0)        score += 20;
+      if (rank === 'species')         score += 25;
+      else if (rank === 'subspecies') score += 15;
+      else if (rank === 'genus')      score += 5;
+      else if (rank === 'family')     score -= 10;
+      if ((r.status || '').toLowerCase() === 'accepted') score += 10;
       return { ...r, _score: score };
     });
     scored.sort((a, b) => b._score - a._score);
 
-    // Phase 6: FishBase (authoritative name) + Wikipedia (photo only) in parallel
+    // ── Phase 6: fetch Wikipedia thumbnails (all candidates, in parallel) ──
     const candidates = scored.slice(0, 30);
-    showResults(`<div class="search-message">Loading species data…</div>`);
+    showResults(`<div class="search-message">Loading photos for ${candidates.length} species…</div>`);
     const withThumb = await Promise.all(
       candidates.map(async r => {
-        // Run FishBase and wiki photo fetch in parallel per species
-        const [fbData, thumb] = await Promise.all([
-          fetchFishBaseData(r.scientificname),
-          fetchWikiPhoto(r.scientificname, r._common),
-        ]);
-        // FishBase common name takes priority — it's locked to the correct species
-        // by scientific name lookup, so no cross-species contamination possible
-        const correctedCommon = fbData?.commonName || r._common;
-        return { ...r, _thumb: thumb, _common: correctedCommon, _fbData: fbData };
+        let thumb = null;
+        let wikiTitle = null;
+        const names = [r.scientificname, r._common].filter(Boolean);
+        for (const name of names) {
+          try {
+            const encoded = encodeURIComponent(name.replace(/ /g, '_'));
+            const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.type !== 'disambiguation') {
+                if (data.thumbnail?.source && !thumb) thumb = data.thumbnail.source;
+                if (data.title && !wikiTitle) wikiTitle = data.title;
+              }
+            }
+          } catch(e) {}
+        }
+        return { ...r, _thumb: thumb, _wikiTitle: wikiTitle };
       })
     );
 
+    // Show all results (photos first within same score band), no hard photo requirement
     withThumb.sort((a, b) => {
       if (b._score !== a._score) return b._score - a._score;
-      return (b._thumb ? 1 : 0) - (a._thumb ? 1 : 0);
+      return (b._thumb ? 1 : 0) - (a._thumb ? 1 : 0); // photos first on tie
     });
 
     if (!withThumb.length) {
@@ -613,20 +722,23 @@ async function wormsSearch() {
       return;
     }
 
-    // Phase 7: render
+    // ── Phase 7: render ──
     const container = document.createElement('div');
 
-    // Previously-found species at top
+    // Show already-logged matches at the very top with a "Previously found" badge
+    const ql2 = q.toLowerCase();
     const matchingKnown = knownFish.filter(f => {
-      const cn = (f.common_name||'').toLowerCase(), sn = (f.scientific_name||'').toLowerCase();
-      return cn.includes(ql) || sn.includes(ql);
+      const cn = (f.common_name || '').toLowerCase();
+      const sn = (f.scientific_name || '').toLowerCase();
+      return cn.includes(ql2) || sn.includes(ql2);
     }).slice(0, 3);
 
     if (matchingKnown.length) {
-      const div1 = document.createElement('div');
-      div1.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;padding:8px 14px 4px;background:#f9f7f3;border-bottom:1px solid #f0ede6';
-      div1.textContent = 'Previously found';
-      container.appendChild(div1);
+      const divider = document.createElement('div');
+      divider.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;padding:8px 14px 4px;background:#f9f7f3;border-bottom:1px solid #f0ede6';
+      divider.textContent = 'Previously found';
+      container.appendChild(divider);
+
       matchingKnown.forEach(f => {
         const item = document.createElement('div');
         item.className = 'search-result-item';
@@ -636,61 +748,78 @@ async function wormsSearch() {
         icon.textContent = '✓';
         const text = document.createElement('div');
         text.style.cssText = 'flex:1;min-width:0';
-        const nl = document.createElement('div');
-        nl.style.cssText = 'font-size:14px;font-weight:600;color:#1a5e3f';
-        nl.textContent = f.common_name || f.scientific_name;
-        const sl = document.createElement('div');
-        sl.style.cssText = 'font-size:12px;color:#7a7166;font-style:italic;margin-top:2px';
-        sl.textContent = f.scientific_name;
-        text.appendChild(nl); text.appendChild(sl);
-        item.appendChild(icon); item.appendChild(text);
+        const nameLine = document.createElement('div');
+        nameLine.style.cssText = 'font-size:14px;font-weight:600;color:#1a5e3f';
+        nameLine.textContent = f.common_name || f.scientific_name;
+        const sciLine = document.createElement('div');
+        sciLine.style.cssText = 'font-size:12px;color:#7a7166;font-style:italic;margin-top:2px';
+        sciLine.textContent = f.scientific_name;
+        text.appendChild(nameLine);
+        text.appendChild(sciLine);
+        item.appendChild(icon);
+        item.appendChild(text);
         item.addEventListener('click', () => selectKnownFish(f));
         container.appendChild(item);
       });
-      const div2 = document.createElement('div');
-      div2.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;padding:8px 14px 4px;background:#f9f7f3;border-bottom:1px solid #f0ede6';
-      div2.textContent = 'All species';
-      container.appendChild(div2);
+
+      const divider2 = document.createElement('div');
+      divider2.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;padding:8px 14px 4px;background:#f9f7f3;border-bottom:1px solid #f0ede6';
+      divider2.textContent = 'All species';
+      container.appendChild(divider2);
     }
 
     withThumb.forEach(r => {
-      // _common is now FishBase-corrected — use directly, no wiki title logic needed
-      const displayName = r._common
-        ? r._common.charAt(0).toUpperCase() + r._common.slice(1)
+      const rawTitle = r._wikiTitle || '';
+      const looksScientific = rawTitle && rawTitle.toLowerCase() === r.scientificname.toLowerCase();
+      // Also reject wiki titles that seem completely unrelated to the species
+      const titleWords = rawTitle.toLowerCase().split(/\s+/);
+      const sciWords = r.scientificname.toLowerCase().split(/\s+/);
+      const commonWords = (r._common || '').toLowerCase().split(/\s+/);
+      const allSpeciesWords = [...sciWords, ...commonWords];
+      const titleSeemsBad = rawTitle && !titleWords.some(w => allSpeciesWords.some(s => s.includes(w) || w.includes(s)));
+      const bestCommon = (looksScientific || titleSeemsBad) ? r._common : (rawTitle || r._common);
+      const displayName = bestCommon
+        ? bestCommon.charAt(0).toUpperCase() + bestCommon.slice(1)
         : r.scientificname;
+  
       const subLine = r._common ? r.scientificname : '';
+      const rankBadge = r.rank
+        ? `<span style="font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:#e8f4f0;color:#2d6a4f;margin-left:6px">${r.rank}</span>`
+        : '';
 
       const item = document.createElement('div');
       item.className = 'search-result-item';
       item.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px';
       item.innerHTML = r._thumb
-        ? `<img src="${r._thumb}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0">`
-        : `<div style="width:48px;height:48px;border-radius:6px;background:#e8f4f8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">🐟</div>`;
+        ? `<img src="${r._thumb}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;background:#f0ede8">`
+        : `<div style="width:48px;height:48px;border-radius:6px;background:#f0ede8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">&#x1F41F;</div>`;
       const text = document.createElement('div');
       text.style.cssText = 'flex:1;min-width:0';
       const nameLine = document.createElement('div');
-      nameLine.style.cssText = 'font-size:14px;font-weight:600;color:#0d2b3e;display:flex;align-items:center;flex-wrap:wrap;gap:4px';
+      nameLine.style.cssText = 'font-size:14px;font-weight:600;color:#1a1814;display:flex;align-items:center;flex-wrap:wrap;gap:4px';
       nameLine.textContent = displayName;
       if (r.rank) {
         const badge = document.createElement('span');
-        badge.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:#e0f4f7;color:#1a8fa0';
+        badge.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:#e8f4f0;color:#2d6a4f';
         badge.textContent = r.rank;
         nameLine.appendChild(badge);
       }
       text.appendChild(nameLine);
       if (subLine) {
         const sci = document.createElement('div');
-        sci.style.cssText = 'font-size:12px;color:#6b9aaa;font-style:italic;margin-top:2px';
+        sci.style.cssText = 'font-size:12px;color:#7a7166;font-style:italic;margin-top:2px';
         sci.textContent = subLine;
         text.appendChild(sci);
       }
       item.appendChild(text);
-      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', r._common || ''));
+      item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', bestCommon || ''));
       container.appendChild(item);
     });
 
     const el = document.getElementById('search-results');
-    el.innerHTML = ''; el.appendChild(container); el.style.display = 'block';
+    el.innerHTML = '';
+    el.appendChild(container);
+    el.style.display = 'block';
 
   } catch(e) {
     showResults(`<div class="search-message">Search failed: ${e.message}</div>`);
@@ -700,63 +829,75 @@ async function wormsSearch() {
   }
 }
 
-// ── Known fish selection ──────────────────────────────────────────────────────
+// Select a fish that's already been logged — populate card from stored data,
+// then optionally enrich with WoRMS/Wikipedia in the background
 function selectKnownFish(f) {
   hideResults();
-  const common = f.common_name || f.scientific_name || 'Unknown';
-  const sci    = f.scientific_name || '';
+
+  const common  = f.common_name   || f.scientific_name || 'Unknown';
+  const sci     = f.scientific_name || '';
+  const family  = f.family        || '';
+  const habitat = f.habitat       || '';
+  const desc    = f.description   || '';
+
+  // Populate card immediately from stored data
   document.getElementById('sc-common').textContent  = common;
   document.getElementById('sc-sci').textContent     = sci || '—';
   document.getElementById('sc-rank').textContent    = f.rank || 'Species';
-  document.getElementById('sc-habitat').textContent = f.habitat || '—';
-  document.getElementById('sc-family').textContent  = f.family  || '—';
-  document.getElementById('sc-order').textContent   = f.order   || '—';
-  document.getElementById('sc-class').textContent   = f.class   || '—';
-  document.getElementById('sc-desc').textContent    = f.description || 'Loading description…';
+  document.getElementById('sc-habitat').textContent = habitat || '—';
+  document.getElementById('sc-family').textContent  = family  || '—';
+  document.getElementById('sc-order').textContent   = f.order  || '—';
+  document.getElementById('sc-class').textContent   = f.class  || '—';
+  document.getElementById('sc-desc').textContent    = desc || 'Loading description…';
   document.getElementById('sc-photo').style.display = 'none';
   document.getElementById('species-card').classList.add('visible');
   document.getElementById('search-panel').style.display  = 'none';
   document.getElementById('manual-toggle').style.display = 'none';
 
   selectedSpecies = {
-    aphiaId: f.aphia_id || '0', sciName: sci || common, commonName: common,
-    habitat: f.habitat || '', description: f.description || '',
-    rank: f.rank || 'Species', family: f.family || '', order: f.order || '', class: f.class || '',
+    aphiaId:    f.aphia_id   || '',
+    sciName:    sci || common,
+    commonName: common,
+    habitat,
+    description: desc,
+    rank:   f.rank   || 'Species',
+    family,
+    order:  f.order  || '',
+    class:  f.class  || '',
   };
-  document.getElementById('f-aphia-id').value = f.aphia_id || '0';
+
+  // Populate hidden fields
+  document.getElementById('f-aphia-id').value = f.aphia_id  || '';
   document.getElementById('f-sci').value      = sci || common;
   document.getElementById('f-common').value   = common;
-  document.getElementById('f-habitat').value  = f.habitat || '';
-  document.getElementById('f-desc').value     = f.description || '';
-  document.getElementById('f-rank').value     = f.rank || 'Species';
-  document.getElementById('f-family').value   = f.family || '';
+  document.getElementById('f-habitat').value  = habitat;
+  document.getElementById('f-desc').value     = desc;
+  document.getElementById('f-rank').value     = f.rank   || 'Species';
+  document.getElementById('f-family').value   = family;
 
+  // Background enrich: Wikipedia photo + description
   (async () => {
-    const [fbData, wiki] = await Promise.all([
-      fetchFishBaseData(sci),
-      fetchWikipediaDescription(sci, common),
-    ]);
-    const photo = document.getElementById('sc-photo');
-    if (wiki?.thumbnail && photo) { photo.src = wiki.thumbnail; photo.style.display = 'block'; }
-    const descEl = document.getElementById('sc-desc');
-    if (descEl) {
-      const desc = (fbData?.description && fbData.description.length > 60)
-        ? fbData.description
-        : wiki?.extract;
-      if (desc) {
-        const link = wiki?.url ? ` <a href="${wiki.url}" target="_blank" rel="noopener">Read more ↗</a>` : '';
-        descEl.innerHTML = escapeHtml(desc) + link;
-        selectedSpecies.description = desc;
-        document.getElementById('f-desc').value = desc;
-      }
+    const wiki = await fetchWikipediaDescription(sci, common);
+    if (!wiki) return;
+    if (wiki.thumbnail) {
+      const img = document.getElementById('sc-photo');
+      if (img) { img.src = wiki.thumbnail; img.style.display = 'block'; }
+    }
+    if (wiki.extract) {
+      const linkHtml = wiki.url
+        ? ` <a href="${wiki.url}" target="_blank" rel="noopener">Read more on Wikipedia ↗</a>`
+        : '';
+      const descEl = document.getElementById('sc-desc');
+      if (descEl) descEl.innerHTML = escapeHtml(wiki.extract) + linkHtml;
+      selectedSpecies.description = wiki.extract;
+      document.getElementById('f-desc').value = wiki.extract;
     }
   })();
 }
 
-// ── Manual entry ──────────────────────────────────────────────────────────────
 function toggleManual() {
-  const p = document.getElementById('manual-panel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  const panel = document.getElementById('manual-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 
 function selectManual(e) {
@@ -765,9 +906,22 @@ function selectManual(e) {
   const sci     = document.getElementById('m-sci').value.trim();
   const family  = document.getElementById('m-family').value.trim();
   const habitat = document.getElementById('m-habitat').value.trim();
+
   if (!common) { alert('Please enter at least a common name.'); return; }
 
-  selectedSpecies = { aphiaId: '0', sciName: sci || common, commonName: common, habitat, description: '', rank: 'Species', family, order: '', class: '' };
+  selectedSpecies = {
+    aphiaId:    '',
+    sciName:    sci || common,
+    commonName: common,
+    habitat,
+    description: '',
+    rank:   'Species',
+    family,
+    order:  '',
+    class:  '',
+  };
+
+  // Show the species card
   document.getElementById('sc-common').textContent  = common;
   document.getElementById('sc-sci').textContent     = sci || '—';
   document.getElementById('sc-rank').textContent    = 'Manual';
@@ -781,7 +935,9 @@ function selectManual(e) {
   document.getElementById('search-panel').style.display  = 'none';
   document.getElementById('manual-toggle').style.display = 'none';
   document.getElementById('manual-panel').style.display  = 'none';
-  document.getElementById('f-aphia-id').value = '0';
+
+  // Populate hidden fields
+  document.getElementById('f-aphia-id').value = '';
   document.getElementById('f-sci').value      = sci || common;
   document.getElementById('f-common').value   = common;
   document.getElementById('f-habitat').value  = habitat;
@@ -792,7 +948,8 @@ function selectManual(e) {
 
 function showResults(html) {
   const el = document.getElementById('search-results');
-  el.innerHTML = html; el.style.display = 'block';
+  el.innerHTML = html;
+  el.style.display = 'block';
 }
 function hideResults() {
   document.getElementById('search-results').style.display = 'none';
@@ -806,51 +963,64 @@ document.getElementById('worms-query').addEventListener('keydown', e => {
 // ── Select species ────────────────────────────────────────────────────────────
 async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   hideResults();
+
+  // Show loading state immediately
   document.getElementById('sc-common').textContent = 'Loading…';
   document.getElementById('sc-sci').textContent    = sciName;
   document.getElementById('sc-desc').innerHTML     = '<span class="species-desc-loading">Fetching species data…</span>';
   document.getElementById('species-card').classList.add('visible');
-  document.getElementById('search-panel').style.display  = 'none';
-  document.getElementById('manual-toggle').style.display = 'none';
+  document.getElementById('search-panel').style.display = 'none';
 
+  // Resolve synonym → accepted record
   let resolvedId = aphiaId, resolvedName = sciName;
   if (status && status.toLowerCase() !== 'accepted') {
     try {
-      const r = await fetch(`${WORMS}/AphiaRecordByAphiaID/${aphiaId}`);
+      const r   = await fetch(`${WORMS}/AphiaRecordByAphiaID/${aphiaId}`);
       const rec = await r.json();
       if (rec?.valid_AphiaID && rec.valid_AphiaID !== aphiaId) {
-        resolvedId = rec.valid_AphiaID; resolvedName = rec.valid_name;
+        resolvedId   = rec.valid_AphiaID;
+        resolvedName = rec.valid_name;
       }
     } catch(e) {}
   }
 
+  // Fetch full record + vernaculars + attributes in parallel
   const [fullRecord, verns, attrs] = await Promise.all([
     fetch(`${WORMS}/AphiaRecordByAphiaID/${resolvedId}`).then(r => r.json()).catch(() => null),
     fetch(`${WORMS}/AphiaVernacularsByAphiaID/${resolvedId}`).then(r => r.ok ? r.json() : []).catch(() => []),
     fetch(`${WORMS}/AphiaAttributesByAphiaID/${resolvedId}`).then(r => r.ok ? r.json() : []).catch(() => []),
   ]);
 
-  // Common name: searchCommonName (FishBase-corrected from search) > WoRMS vernacular
+  // Common name — prefer searchCommonName from WoRMS vernacular lookup,
+  // will be overridden by Wikipedia title below
   let commonName = searchCommonName || '';
-  if (!commonName && Array.isArray(verns)) {
+  if (!commonName && Array.isArray(verns) && verns.length) {
     const eng = verns.find(v => v.language_code === 'eng');
     if (eng) commonName = eng.vernacular;
   }
 
-  // Habitat from WoRMS flags + attributes
+  // Habitat — combine WoRMS environment flags with attribute data
+  let habitat = '';
   const envParts = [];
   if (fullRecord) {
-    if (fullRecord.isMarine     === 1) envParts.push('Marine');
-    if (fullRecord.isBrackish   === 1) envParts.push('Brackish');
-    if (fullRecord.isFreshwater === 1) envParts.push('Freshwater');
-    if (fullRecord.isTerrestrial=== 1) envParts.push('Terrestrial');
+    if (fullRecord.isMarine    === 1) envParts.push('Marine');
+    if (fullRecord.isBrackish  === 1) envParts.push('Brackish');
+    if (fullRecord.isFreshwater=== 1) envParts.push('Freshwater');
+    if (fullRecord.isTerrestrial===1) envParts.push('Terrestrial');
   }
   if (Array.isArray(attrs)) {
-    attrs.filter(a => a.measurementType && /habitat|zone|depth|system/i.test(a.measurementType))
-         .forEach(a => { if (a.measurementValue) envParts.push(a.measurementValue); });
+    const habAttrs = attrs.filter(a => a.measurementType && (
+      a.measurementType.toLowerCase().includes('habitat') ||
+      a.measurementType.toLowerCase().includes('zone') ||
+      a.measurementType.toLowerCase().includes('depth') ||
+      a.measurementType.toLowerCase().includes('system')
+    ));
+    habAttrs.forEach(a => { if (a.measurementValue) envParts.push(a.measurementValue); });
   }
-  let habitat = [...new Set(envParts)].join(', ');
+  habitat = [...new Set(envParts)].join(', ');
 
+  // Update species card display (description will be filled by Wikipedia fetch below)
+  document.getElementById('sc-common').textContent  = commonName || resolvedName;
   document.getElementById('sc-sci').textContent     = resolvedName;
   document.getElementById('sc-rank').textContent    = fullRecord?.rank || '';
   document.getElementById('sc-habitat').textContent = habitat || '—';
@@ -858,65 +1028,66 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
   document.getElementById('sc-order').textContent   = fullRecord?.order  || '—';
   document.getElementById('sc-class').textContent   = fullRecord?.class  || '—';
 
-  // FishBase + Wikipedia in parallel
+  // Fetch Wikipedia description + thumbnail
   let description = '';
-  const [fbData, wiki] = await Promise.all([
-    fetchFishBaseData(resolvedName),
-    fetchWikipediaDescription(resolvedName, commonName),
-  ]);
-
-  // FishBase name is most reliable — override if present
-  if (fbData?.commonName) commonName = fbData.commonName;
-  document.getElementById('sc-common').textContent = commonName || resolvedName;
-
-  // Photo from Wikipedia (FishBase doesn't provide directly accessible images)
-  if (wiki?.thumbnail) {
-    const img = document.getElementById('sc-photo');
-    img.src = wiki.thumbnail; img.style.display = 'block';
-  }
-
-  // Description: FishBase preferred (species-specific), Wikipedia as fallback
-  if (fbData?.description && fbData.description.length > 60) {
-    description = fbData.description;
-    // Append Wikipedia link if available
-    const link = wiki?.url
-      ? ` <a href="${wiki.url}" target="_blank" rel="noopener">Read more on Wikipedia ↗</a>` : '';
-    document.getElementById('sc-desc').innerHTML = escapeHtml(description) + link;
-  } else if (wiki?.extract) {
+  const wiki = await fetchWikipediaDescription(resolvedName, commonName);
+  if (wiki) {
     description = wiki.extract;
-    const link = wiki.url
-      ? ` <a href="${wiki.url}" target="_blank" rel="noopener">Read more on Wikipedia ↗</a>` : '';
-    document.getElementById('sc-desc').innerHTML = escapeHtml(description) + link;
-    // Habitat from Wikipedia text if WoRMS gave nothing
-    if (!habitat) {
-      const found = ['reef','ocean','coast','pelagic','demersal','benthic','estuarine',
-                     'freshwater','brackish','deep-sea','coral','mangrove','kelp','intertidal']
-        .filter(w => description.toLowerCase().includes(w));
+    // Use Wikipedia title unless it matches the scientific name
+    if (wiki.title && wiki.title.toLowerCase() !== resolvedName.toLowerCase()) {
+      commonName = wiki.title;
+      document.getElementById('sc-common').textContent = commonName;
+    } else if (commonName) {
+      // Wiki title is the scientific name — keep WoRMS/searchCommonName already set
+      document.getElementById('sc-common').textContent = commonName;
+    }
+    // Show photo in card header
+    if (wiki.thumbnail) {
+      const img = document.getElementById('sc-photo');
+      img.src = wiki.thumbnail;
+      img.style.display = 'block';
+    }
+    // If Wikipedia mentions habitat and WoRMS didn't give us one, extract it
+    if (!habitat && wiki.extract) {
+      const lower = wiki.extract.toLowerCase();
+      const habWords = ['reef','ocean','coast','pelagic','demersal','benthic','estuar',
+                        'freshwater','brackish','deep-sea','shallow','coral','open water',
+                        'rocky','sandy','mangrove','kelp','intertidal'];
+      const found = habWords.filter(w => lower.includes(w));
       if (found.length) {
-        habitat = found.map(w => w[0].toUpperCase() + w.slice(1)).join(', ');
+        habitat = found.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(', ');
         document.getElementById('sc-habitat').textContent = habitat;
       }
     }
+    const linkHtml = wiki.url
+      ? ` <a href="${wiki.url}" target="_blank" rel="noopener">Read more on Wikipedia ↗</a>`
+      : '';
+    document.getElementById('sc-desc').innerHTML =
+      `<span>${escapeHtml(description)}</span>${linkHtml}`;
   } else {
-    description = `${resolvedName} is a species${fullRecord?.family ? ' in the ' + fullRecord.family + ' family' : ''}.`;
+    const parts = [];
+    if (fullRecord?.class)  parts.push(`Class: ${fullRecord.class}`);
+    if (fullRecord?.order)  parts.push(`Order: ${fullRecord.order}`);
+    if (fullRecord?.family) parts.push(`Family: ${fullRecord.family}`);
+    description = `${resolvedName} is a marine species${fullRecord?.family ? ' in the ' + fullRecord.family + ' family' : ''}.`;
     if (habitat) description += ` Found in: ${habitat}.`;
-    document.getElementById('sc-desc').textContent = description;
-  }
-
-  // FishBase extras — show max length and depth if available
-  if (fbData?.maxLength || fbData?.depthRange) {
-    const extras = [fbData.maxLength && `Max length: ${fbData.maxLength}`, fbData.depthRange && `Depth: ${fbData.depthRange}`].filter(Boolean).join(' · ');
-    const extraEl = document.createElement('div');
-    extraEl.style.cssText = 'font-size:12px;color:var(--muted);margin-top:6px';
-    extraEl.textContent = extras;
-    document.getElementById('sc-desc').appendChild(extraEl);
+    if (parts.length) description += ` Taxonomy — ${parts.join(', ')}.`;
+    document.getElementById('sc-desc').textContent = description || 'No description available.';
   }
 
   selectedSpecies = {
-    aphiaId: resolvedId, sciName: resolvedName, commonName, habitat, description,
-    rank: fullRecord?.rank || '', family: fullRecord?.family || '',
-    order: fullRecord?.order || '', class: fullRecord?.class || '',
+    aphiaId: resolvedId,
+    sciName: resolvedName,
+    commonName,
+    habitat,
+    description,
+    rank:   fullRecord?.rank   || '',
+    family: fullRecord?.family || '',
+    order:  fullRecord?.order  || '',
+    class:  fullRecord?.class  || '',
   };
+
+  // Populate hidden fields for submit
   document.getElementById('f-aphia-id').value = resolvedId;
   document.getElementById('f-sci').value      = resolvedName;
   document.getElementById('f-common').value   = commonName;
@@ -927,7 +1098,7 @@ async function selectSpecies(aphiaId, sciName, status, searchCommonName = '') {
 }
 
 function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function clearFish() {
@@ -946,9 +1117,13 @@ function clearFish() {
 // ── Photos ────────────────────────────────────────────────────────────────────
 const dropZone  = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
+
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); addFiles([...e.dataTransfer.files]); });
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('over');
+  addFiles([...e.dataTransfer.files]);
+});
 fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value = ''; });
 
 function addFiles(files) {
@@ -962,10 +1137,16 @@ function addFiles(files) {
 }
 
 function addThumb(idx, src) {
-  const div = document.createElement('div');
-  div.className = 'photo-thumb'; div.id = `thumb-${idx}`;
-  div.innerHTML = `<img src="${src}" alt=""><button type="button" class="photo-remove" onclick="removePhoto(${idx})">&times;</button><input type="text" placeholder="Caption…" onchange="photoFiles[${idx}].caption = this.value">`;
-  document.getElementById('photo-grid').appendChild(div);
+  const grid = document.getElementById('photo-grid');
+  const div  = document.createElement('div');
+  div.className = 'photo-thumb';
+  div.id = `thumb-${idx}`;
+  div.innerHTML = `
+    <img src="${src}" alt="">
+    <button type="button" class="photo-remove" onclick="removePhoto(${idx})">&times;</button>
+    <input type="text" placeholder="Caption…" onchange="photoFiles[${idx}].caption = this.value">
+  `;
+  grid.appendChild(div);
 }
 
 function removePhoto(idx) {
@@ -977,41 +1158,54 @@ function removePhoto(idx) {
 // ── Submit ────────────────────────────────────────────────────────────────────
 document.getElementById('form').addEventListener('submit', async function(e) {
   e.preventDefault();
+
   const date = document.getElementById('sighting_date').value;
-  if (!date)            { showStatus('Please enter a sighting date.', 'err'); return; }
-  if (!selectedSpecies) { showStatus('Please select a species.', 'err'); return; }
+  if (!date)             { showStatus('Please enter a sighting date.', 'err'); return; }
+  if (!selectedSpecies)  { showStatus('Please search for and select a species.', 'err'); return; }
+
   if (!confirm(`Save sighting of ${selectedSpecies.commonName || selectedSpecies.sciName}?`)) return;
 
   const btn = document.getElementById('btn-submit');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
 
   const fd = new FormData();
   fd.append('sighting_date',   date);
   fd.append('location',        document.getElementById('location').value);
   fd.append('notes',           document.getElementById('notes').value);
-  fd.append('aphia_id',        selectedSpecies.aphiaId || '0');
+  fd.append('aphia_id',        selectedSpecies.aphiaId);
   fd.append('scientific_name', selectedSpecies.sciName);
   fd.append('common_name',     selectedSpecies.commonName || selectedSpecies.sciName);
   fd.append('habitat',         selectedSpecies.habitat);
   fd.append('description',     selectedSpecies.description);
   fd.append('family',          selectedSpecies.family || '');
-  photoFiles.filter(Boolean).forEach(p => { fd.append('photos[]', p.file); fd.append('captions[]', p.caption); });
+
+  photoFiles.filter(Boolean).forEach(p => {
+    fd.append('photos[]',   p.file);
+    fd.append('captions[]', p.caption);
+  });
 
   try {
     const res  = await fetch('saveSighting.php', { method: 'POST', body: fd });
     const data = await res.json();
-    if (!res.ok || data.error) { showStatus(data.error || 'Something went wrong.', 'err'); }
-    else { showStatus('Sighting saved! Redirecting…', 'ok'); setTimeout(() => window.location.href = 'index.html', 1200); }
+    if (!res.ok || data.error) {
+      showStatus(data.error || 'Something went wrong.', 'err');
+    } else {
+      showStatus('Sighting saved! Redirecting…', 'ok');
+      setTimeout(() => window.location.href = 'index.html', 1200);
+    }
   } catch(err) {
     showStatus('Network error: ' + err.message, 'err');
   } finally {
-    btn.disabled = false; btn.textContent = 'Save sighting';
+    btn.disabled = false;
+    btn.textContent = 'Save sighting';
   }
 });
 
 function showStatus(msg, type) {
   const el = document.getElementById('status');
-  el.textContent = msg; el.className = `status ${type}`;
+  el.textContent = msg;
+  el.className = `status ${type}`;
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
