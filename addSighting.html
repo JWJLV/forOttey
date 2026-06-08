@@ -506,14 +506,15 @@ function closeMap() {
 // ── Chordata check ────────────────────────────────────────────────────────────
 // Some records (especially from vernacular search) don't include phylum.
 // This fetches the full record to verify membership in Chordata.
-async function isChordata(record) {
-  // If phylum is already set, use it directly
-  if (record.phylum) return record.phylum === 'Chordata';
-  // Otherwise fetch the full record to check classification
+// ── Allowed phyla check ───────────────────────────────────────────────────────
+const ALLOWED_PHYLA = ['Chordata', 'Mollusca', 'Arthropoda', 'Echinodermata'];
+
+async function isAllowedPhylum(record) {
+  if (record.phylum) return ALLOWED_PHYLA.includes(record.phylum);
   try {
     const r   = await fetch(`${WORMS}/AphiaRecordByAphiaID/${record.AphiaID}`);
     const rec = await r.json();
-    return rec?.phylum === 'Chordata';
+    return ALLOWED_PHYLA.includes(rec?.phylum);
   } catch (e) {
     return false;
   }
@@ -583,12 +584,11 @@ async function wormsSearch() {
     // ── Phase 2: Chordata filter ──
     showResults('<div class="search-message">Finding species…</div>');
     const allRecords = [...allRaw.values()];
-    const chordataChecks = await Promise.all(allRecords.map(r => isChordata(r)));
-    const chordataOnly = allRecords.filter((_, i) => chordataChecks[i]);
+    const phylumChecks = await Promise.all(allRecords.map(r => isAllowedPhylum(r)));
+    const chordataOnly = allRecords.filter((_, i) => phylumChecks[i]);
 
     if (!chordataOnly.length) {
-      showResults('<div class="search-message">No fish/vertebrate species found.</div>');
-      return;
+      showResults('<div class="search-message">No marine species found.</div>');
     }
 
     // ── Phase 3: expand genera → get all child species ──
