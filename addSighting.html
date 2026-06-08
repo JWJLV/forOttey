@@ -777,7 +777,7 @@ async function wormsSearch() {
       const commonWords = (r._common || '').toLowerCase().split(/\s+/);
       const allSpeciesWords = [...sciWords, ...commonWords];
       const titleSeemsBad = rawTitle && !titleWords.some(w => allSpeciesWords.some(s => s.includes(w) || w.includes(s)));
-      const bestCommon = (looksScientific || titleSeemsBad) ? r._common : (rawTitle);
+      const bestCommon = (looksScientific || titleSeemsBad) ? r._common : (rawTitle || r._common);
       const displayName = bestCommon
         ? bestCommon.charAt(0).toUpperCase() + bestCommon.slice(1)
         : r.scientificname;
