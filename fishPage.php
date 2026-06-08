@@ -233,7 +233,7 @@
 <body>
 
 <nav>
-  <span href="index.html" class="nav-logo">Adventure Sightings</span>
+  <a href="index.html" class="nav-logo">Adventure Sightings</a>
   <div class="nav-links">
     <a href="index.html" class="nav-link">Gallery</a>
     <a href="addSighting.html" class="nav-link nav-link-primary">+ Add sighting</a>
