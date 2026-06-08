@@ -49,6 +49,7 @@
       font-size: 20px;
       color: var(--sand);
       letter-spacing: 0.01em;
+      text-decoration: none;
     }
 
     .nav-links {
