@@ -80,7 +80,7 @@ try {
 
     // ── 3. Upload photos ──────────────────────────────────────────────────────
     $upload_dir    = __DIR__ . '/uploads/';
-    $allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    $allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
 
     if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
 

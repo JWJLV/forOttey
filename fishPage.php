@@ -504,6 +504,7 @@ async function saveEdit(sightingId) {
     const header = item.querySelector('.sighting-item-header');
     const notesEl = item.querySelector('.sighting-notes');
 
+
     // Update date/location
     const dateSpan = header.querySelector('.sighting-date');
     const locSpan  = header.querySelector('.sighting-location');
@@ -563,11 +564,11 @@ function renderFishDetail(rows) {
 
     return `
       <div class="sighting-item" id="sighting-${s.sighting_id}">
-        <div class="sighting-item-header">
+        <div class="sighting-item-header" data-raw-date="${escHtml(s.sighting_date)}" data-raw-location="${escHtml(s.location||'')}">
           <span class="sighting-date">${new Date(s.sighting_date).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'})}</span>
           ${s.location ? `<span class="sighting-location"> ${escHtml(s.location)}</span>` : ''}
         </div>
-        ${s.notes ? `<div class="sighting-notes">${escHtml(s.notes)}</div>` : ''}
+        ${s.notes ? `<div class="sighting-notes" data-raw-notes="${escHtml(s.notes)}">${escHtml(s.notes)}</div>` : '<div class="sighting-notes" data-raw-notes="" style="display:none"></div>'}
         ${photos ? `<div class="sighting-photos">${photos}</div>` : ''}
         <div id="sighting-btns-${s.sighting_id}" style="margin-top:10px;display:flex;justify-content:flex-end;gap:8px">
           <button onclick="editSighting(${s.sighting_id}, '${escHtml(s.sighting_date)}', '${escHtml(s.location||'')}', '${escHtml(s.notes||'')}')" style="font-size:12px;color:#1a8fa0;background:none;border:1px solid #cde0e8;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#edf7f2'" onmouseout="this.style.background='none'">Edit</button>
