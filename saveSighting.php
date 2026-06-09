@@ -105,7 +105,15 @@ try {
             $ext      = strtolower(pathinfo($photos['name'][$i], PATHINFO_EXTENSION));
             $filename = uniqid('photo_', true) . '.' . $ext;
             $filepath = '/uploads/' . $filename;
-            move_uploaded_file($photos['tmp_name'][$i], $upload_dir . $filename);
+
+            if (!move_uploaded_file(
+                $photos['tmp_name'][$i],
+                $upload_dir . $filename
+            )) {
+                error_log("Failed to move uploaded file");
+                continue;
+            }
+            
             $caption = trim($captions[$i] ?? '');
             $stmt = $pdo->prepare(
                 "INSERT INTO photos (fish_id, sighting_id, filename, filepath, caption)
