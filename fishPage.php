@@ -428,6 +428,100 @@ async function deleteSighting(sightingId, fishId) {
   }
 }
 
+function editSighting(sightingId, date, location, notes) {
+  const item = document.getElementById(`sighting-${sightingId}`);
+  if (!item) return;
+
+  // Replace content with inline edit form
+  const header = item.querySelector('.sighting-item-header');
+  const notesEl = item.querySelector('.sighting-notes');
+  const photos = item.querySelector('.sighting-photos');
+  const buttons = item.querySelector('div[style*="justify-content:flex-end"]');
+
+  // Hide current display elements
+  if (header) header.style.display = 'none';
+  if (notesEl) notesEl.style.display = 'none';
+  if (buttons) buttons.style.display = 'none';
+
+  // Insert edit form
+  const form = document.createElement('div');
+  form.id = `edit-form-${sightingId}`;
+  form.style.cssText = 'display:flex;flex-direction:column;gap:12px;padding:4px 0';
+  form.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:12px;font-weight:500;color:#374151">Date</label>
+        <input type="date" id="edit-date-${sightingId}" value="${date}"
+          style="font-size:13px;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;outline:none">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:12px;font-weight:500;color:#374151">Location</label>
+        <input type="text" id="edit-loc-${sightingId}" value="${location}" placeholder="Location"
+          style="font-size:13px;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;outline:none">
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <label style="font-size:12px;font-weight:500;color:#374151">Notes</label>
+      <textarea id="edit-notes-${sightingId}" placeholder="Notes…" rows="3"
+        style="font-size:13px;padding:7px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;outline:none;resize:vertical">${notes}</textarea>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button onclick="cancelEdit(${sightingId})" style="font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-family:inherit">Cancel</button>
+      <button onclick="saveEdit(${sightingId})" style="font-size:12px;padding:5px 14px;border-radius:6px;border:none;background:#1a8fa0;color:#fff;cursor:pointer;font-family:inherit;font-weight:500">Save</button>
+    </div>
+  `;
+  item.insertBefore(form, photos || buttons);
+}
+
+function cancelEdit(sightingId) {
+  const item = document.getElementById(`sighting-${sightingId}`);
+  if (!item) return;
+  const form = document.getElementById(`edit-form-${sightingId}`);
+  if (form) form.remove();
+  item.querySelectorAll('[style*="display:none"]').forEach(el => el.style.display = '');
+}
+
+async function saveEdit(sightingId) {
+  const date     = document.getElementById(`edit-date-${sightingId}`).value;
+  const location = document.getElementById(`edit-loc-${sightingId}`).value;
+  const notes    = document.getElementById(`edit-notes-${sightingId}`).value;
+
+  if (!date) { alert('Date is required.'); return; }
+
+  try {
+    const fd = new FormData();
+    fd.append('sighting_id',   sightingId);
+    fd.append('sighting_date', date);
+    fd.append('location',      location);
+    fd.append('notes',         notes);
+    const res  = await fetch('updateSighting.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+
+    // Update DOM in place
+    const item = document.getElementById(`sighting-${sightingId}`);
+    const header = item.querySelector('.sighting-item-header');
+    const notesEl = item.querySelector('.sighting-notes');
+
+    // Update date/location
+    const dateSpan = header.querySelector('.sighting-date');
+    const locSpan  = header.querySelector('.sighting-location');
+    if (dateSpan) dateSpan.textContent = new Date(date).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+    if (locSpan && location) { locSpan.textContent = ' ' + location; locSpan.style.display = ''; }
+    else if (locSpan) locSpan.style.display = 'none';
+
+    // Update notes
+    if (notesEl) {
+      if (notes) { notesEl.textContent = notes; notesEl.style.display = ''; }
+      else notesEl.style.display = 'none';
+    }
+
+    cancelEdit(sightingId);
+  } catch(e) {
+    alert('Network error: ' + e.message);
+  }
+}
+
 function renderFishDetail(rows) {
   if (!rows.length) { showError('No sightings found.'); return; }
 
@@ -474,7 +568,8 @@ function renderFishDetail(rows) {
         </div>
         ${s.notes ? `<div class="sighting-notes">${escHtml(s.notes)}</div>` : ''}
         ${photos ? `<div class="sighting-photos">${photos}</div>` : ''}
-        <div style="margin-top:10px;text-align:right">
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:8px">
+          <button onclick="editSighting(${s.sighting_id}, '${escHtml(s.sighting_date)}', '${escHtml(s.location||'')}', '${escHtml(s.notes||'')}')" style="font-size:12px;color:#1a8fa0;background:none;border:1px solid #cde0e8;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#edf7f2'" onmouseout="this.style.background='none'">Edit</button>
           <button onclick="deleteSighting(${s.sighting_id}, ${f.fish_id})" style="font-size:12px;color:#ef4444;background:none;border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">Delete</button>
         </div>
       </div>`;
