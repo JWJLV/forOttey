@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 require 'db.php';
 error_log("saveSighting.php reached");
+error_log(print_r($_FILES, true));
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
