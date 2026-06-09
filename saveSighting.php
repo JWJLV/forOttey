@@ -1,8 +1,6 @@
 <?php
 header('Content-Type: application/json');
 require 'db.php';
-error_log("saveSighting.php reached");
-error_log(print_r($_FILES, true));
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -93,29 +91,17 @@ try {
         $count = count($photos['name']);
         for ($i = 0; $i < $count; $i++) {
             if ($photos['error'][$i] !== UPLOAD_ERR_OK) continue;
+
             $mime = mime_content_type($photos['tmp_name'][$i]);
 
-            error_log("Upload file: " . $photos['name'][$i]);
-            error_log("Detected MIME: " . $mime);
-
-            if (!in_array($mime, $allowed_types)) {
-                error_log("Rejected MIME: " . $mime);
-                continue;
-            }
-
             if (!in_array($mime, $allowed_types)) continue;
+
             $ext      = strtolower(pathinfo($photos['name'][$i], PATHINFO_EXTENSION));
             $filename = uniqid('photo_', true) . '.' . $ext;
             $filepath = '/uploads/' . $filename;
 
-            if (!move_uploaded_file(
-                $photos['tmp_name'][$i],
-                $upload_dir . $filename
-            )) {
-                error_log("Failed to move uploaded file");
-                continue;
-            }
-
+            move_uploaded_file($photos['tmp_name'][$i], $upload_dir . $filename);
+            
             $caption = trim($captions[$i] ?? '');
             $stmt = $pdo->prepare(
                 "INSERT INTO photos (fish_id, sighting_id, filename, filepath, caption)
