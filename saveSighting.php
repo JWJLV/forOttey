@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require 'db.php';
+error_log("saveSighting.php reached");
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -113,7 +114,7 @@ try {
                 error_log("Failed to move uploaded file");
                 continue;
             }
-            
+
             $caption = trim($captions[$i] ?? '');
             $stmt = $pdo->prepare(
                 "INSERT INTO photos (fish_id, sighting_id, filename, filepath, caption)
