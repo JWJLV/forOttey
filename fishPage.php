@@ -435,7 +435,7 @@ function editSighting(sightingId, date, location, notes) {
   const header  = item.querySelector('.sighting-item-header');
   const notesEl = item.querySelector('.sighting-notes');
   const photos  = item.querySelector('.sighting-photos');
-  const buttons = item.querySelector('div[style*="justify-content:flex-end"]');
+  const buttons = document.getElementById(`sighting-btns-${sightingId}`);
 
   // Hide with a marker so we can reliably restore
   [header, notesEl, buttons].forEach(el => {
@@ -569,7 +569,7 @@ function renderFishDetail(rows) {
         </div>
         ${s.notes ? `<div class="sighting-notes">${escHtml(s.notes)}</div>` : ''}
         ${photos ? `<div class="sighting-photos">${photos}</div>` : ''}
-        <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:8px">
+        <div id="sighting-btns-${s.sighting_id}" style="margin-top:10px;display:flex;justify-content:flex-end;gap:8px">
           <button onclick="editSighting(${s.sighting_id}, '${escHtml(s.sighting_date)}', '${escHtml(s.location||'')}', '${escHtml(s.notes||'')}')" style="font-size:12px;color:#1a8fa0;background:none;border:1px solid #cde0e8;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#edf7f2'" onmouseout="this.style.background='none'">Edit</button>
           <button onclick="deleteSighting(${s.sighting_id}, ${f.fish_id})" style="font-size:12px;color:#ef4444;background:none;border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='none'">Delete</button>
         </div>
