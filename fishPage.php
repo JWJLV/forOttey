@@ -432,18 +432,16 @@ function editSighting(sightingId, date, location, notes) {
   const item = document.getElementById(`sighting-${sightingId}`);
   if (!item) return;
 
-  // Replace content with inline edit form
-  const header = item.querySelector('.sighting-item-header');
+  const header  = item.querySelector('.sighting-item-header');
   const notesEl = item.querySelector('.sighting-notes');
-  const photos = item.querySelector('.sighting-photos');
+  const photos  = item.querySelector('.sighting-photos');
   const buttons = item.querySelector('div[style*="justify-content:flex-end"]');
 
-  // Hide current display elements
-  if (header) header.style.display = 'none';
-  if (notesEl) notesEl.style.display = 'none';
-  if (buttons) buttons.style.display = 'none';
+  // Hide with a marker so we can reliably restore
+  [header, notesEl, buttons].forEach(el => {
+    if (el) { el.dataset.editHidden = '1'; el.style.display = 'none'; }
+  });
 
-  // Insert edit form
   const form = document.createElement('div');
   form.id = `edit-form-${sightingId}`;
   form.style.cssText = 'display:flex;flex-direction:column;gap:12px;padding:4px 0';
@@ -478,7 +476,10 @@ function cancelEdit(sightingId) {
   if (!item) return;
   const form = document.getElementById(`edit-form-${sightingId}`);
   if (form) form.remove();
-  item.querySelectorAll('[style*="display:none"]').forEach(el => el.style.display = '');
+  item.querySelectorAll('[data-edit-hidden="1"]').forEach(el => {
+    el.style.display = '';
+    delete el.dataset.editHidden;
+  });
 }
 
 async function saveEdit(sightingId) {
