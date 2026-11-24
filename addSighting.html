@@ -526,6 +526,17 @@ async function isAllowedPhylum(record) {
 async function fetchWikipediaDescription(sciName, commonName) {
   const WIKI = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
 
+  const genus = (sciName || '').trim().split(/\s+/)[0]?.toLowerCase() || '';
+
+  // A real species article will virtually always mention its own genus
+  // somewhere in the title or summary text. If it doesn't, the page we
+  // got back is probably about something else entirely.
+  const looksRelevant = (data) => {
+    if (!genus) return true;
+    const haystack = `${data.title || ''} ${data.extract || ''}`.toLowerCase();
+    return haystack.includes(genus);
+  };
+
   const tryName = async (name) => {
     try {
       const encoded = encodeURIComponent(name.replace(/ /g, '_'));
@@ -545,7 +556,19 @@ async function fetchWikipediaDescription(sciName, commonName) {
     return null;
   };
 
-  return (await tryName(sciName)) || (commonName ? await tryName(commonName) : null);
+  // Scientific name first — an unrelated species sharing an exact Latin
+  // binomial page title is essentially impossible, so this result is trusted.
+  const sciResult = await tryName(sciName);
+  if (sciResult) return sciResult;
+
+  // Only accept the common-name fallback if it actually checks out as the
+  // right species.
+  if (commonName) {
+    const commonResult = await tryName(commonName);
+    if (commonResult && looksRelevant(commonResult)) return commonResult;
+  }
+
+  return null;
 }
 
 // ── WoRMS Search ──────────────────────────────────────────────────────────────
@@ -554,15 +577,15 @@ async function fetchWikipediaDescription(sciName, commonName) {
 async function wormsSearch() {
   const q = document.getElementById('worms-query').value.trim();
   if (!q) return;
-
+ 
   const btn = document.getElementById('btn-worms-search');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>';
   showResults('<div class="search-message">Searching database…</div>');
-
+ 
   try {
     const ql = q.toLowerCase();
-
+ 
     // ── Phase 1: find matching records (species + genera) via both endpoints ──
     const [sciRaw, commonRaw] = await Promise.all([
       fetch(`${WORMS}/AphiaRecordsByName/${encodeURIComponent(q)}?like=true&marine_only=true&offset=1`)
@@ -570,37 +593,40 @@ async function wormsSearch() {
       fetch(`${WORMS}/AphiaRecordsByVernacular/${encodeURIComponent(q)}?like=true&offset=1`)
         .then(r => r.status === 204 ? [] : r.json()).catch(() => []),
     ]);
-
-    // Deduplicate across both result sets
+ 
     const allRaw = new Map();
     [...(sciRaw||[]), ...(commonRaw||[])].forEach(r => {
       if (r?.AphiaID && !allRaw.has(r.AphiaID)) allRaw.set(r.AphiaID, r);
     });
-
+ 
     if (!allRaw.size) {
       showResults('<div class="search-message">No species found. Try a different name.</div>');
       return;
     }
-
+ 
     // ── Phase 2: Chordata filter ──
+    // NOTE: if you're still seeing non-fish (birds, mammals, etc.) turn up,
+    // it's likely because isAllowedPhylum() only checks phylum === 'Chordata',
+    // which is true for birds/mammals/reptiles too. Worth checking that
+    // function and tightening it to the actual fish classes
+    // (Actinopterygii, Chondrichthyes, Sarcopterygii, Myxini, Petromyzontida,
+    // Elasmobranchii, etc.) if this is the source of any remaining bad matches.
     showResults('<div class="search-message">Finding species…</div>');
     const allRecords = [...allRaw.values()];
     const phylumChecks = await Promise.all(allRecords.map(r => isAllowedPhylum(r)));
     const chordataOnly = allRecords.filter((_, i) => phylumChecks[i]);
-
+ 
     if (!chordataOnly.length) {
       showResults('<div class="search-message">No marine species found.</div>');
+      return;
     }
-
+ 
     // ── Phase 3: expand genera → get all child species ──
-    // Any genus-level hit → fetch all its species from WoRMS
-    // Any species-level hit → include directly
-    // This is what makes "clownfish" return ALL clownfish species
     const genusRecords  = chordataOnly.filter(r => r.rank === 'Genus'  || r.rank === 'genus');
     const speciesRecords = chordataOnly.filter(r => r.rank !== 'Genus' && r.rank !== 'genus');
-
+ 
     let expandedSpecies = [...speciesRecords];
-
+ 
     if (genusRecords.length) {
       const childLists = await Promise.all(
         genusRecords.map(g =>
@@ -616,30 +642,56 @@ async function wormsSearch() {
         });
       });
     }
-
-    // Hard filter: only rank Species (or Subspecies) — never genus/family/order
+ 
     expandedSpecies = expandedSpecies.filter(r => {
       const rk = (r.rank || '').toLowerCase();
       return rk === 'species' || rk === 'subspecies';
     });
-
-    // If expansion left nothing, also try filtering the original Chordata records to species
+ 
     if (!expandedSpecies.length) {
       expandedSpecies = chordataOnly.filter(r => {
         const rk = (r.rank || '').toLowerCase();
         return rk === 'species' || rk === 'subspecies';
       });
     }
-
+ 
     if (!expandedSpecies.length) {
       showResults('<div class="search-message">No species found — only higher-level taxa matched. Try a more specific name or use "Add manually" below.</div>');
       btn.disabled = false; btn.textContent = 'Search';
       return;
     }
-
-    // ── Phase 4: fetch English vernaculars for all species (cap at 30) ──
+ 
+    // ── tightened relevance matching: exact token match only ──
+    // (previously `nameToken.startsWith(queryToken)` let e.g. "whitetip"
+    // count as a match for the query token "white")
+    const queryTokens = ql.split(/\s+/).map(w => w.replace(/s$/, '').trim()).filter(Boolean);
+    const tokenRelevance = (name) => {
+      if (!name) return 0;
+      const nameTokens = name.toLowerCase().split(/\s+/).map(w => w.replace(/s$/, ''));
+      const hits = queryTokens.filter(qt => nameTokens.includes(qt));
+      return hits.length / queryTokens.length;
+    };
+ 
+    // ── Phase 4: fetch English vernaculars ──
+    // FIX: don't cap before this step. Cap generously by a cheap heuristic
+    // (exact sci-name match / species rank / accepted status) purely to bound
+    // API calls against huge genera, but otherwise consider every candidate —
+    // final ranking now happens strictly by relevance score, not array order.
+    const PRE_FETCH_CAP = 60;
+    const cheapScore = r => {
+      let s = 0;
+      const sciL = r.scientificname.toLowerCase();
+      if (sciL === ql) s += 50;
+      if ((r.rank || '').toLowerCase() === 'species') s += 10;
+      if ((r.status || '').toLowerCase() === 'accepted') s += 5;
+      return s;
+    };
+    const toEnrich = [...expandedSpecies]
+      .sort((a, b) => cheapScore(b) - cheapScore(a))
+      .slice(0, PRE_FETCH_CAP);
+ 
     const withCommon = await Promise.all(
-      expandedSpecies.slice(0, 30).map(async r => {
+      toEnrich.map(async r => {
         let common = '';
         try {
           const vr = await fetch(`${WORMS}/AphiaVernacularsByAphiaID/${r.AphiaID}`);
@@ -654,16 +706,8 @@ async function wormsSearch() {
         return { ...r, _common: common };
       })
     );
-
+ 
     // ── Phase 5: score by name relevance to query ──
-    const queryTokens = ql.split(/\s+/).map(w => w.replace(/s$/, '').trim()).filter(Boolean);
-    const tokenRelevance = (name) => {
-      if (!name) return 0;
-      const nameTokens = name.toLowerCase().split(/\s+/).map(w => w.replace(/s$/, ''));
-      const hits = queryTokens.filter(qt => nameTokens.some(nt => nt === qt || nt.startsWith(qt)));
-      return hits.length / queryTokens.length;
-    };
-
     const scored = withCommon.map(r => {
       const commonL   = (r._common || '').toLowerCase();
       const sciL      = r.scientificname.toLowerCase();
@@ -683,17 +727,33 @@ async function wormsSearch() {
       else if (rank === 'genus')      score += 5;
       else if (rank === 'family')     score -= 10;
       if ((r.status || '').toLowerCase() === 'accepted') score += 10;
+ 
+      // Items pulled in only because they share a genus with a real match,
+      // but have zero name relevance to the query themselves (e.g. an
+      // unrelated trout species under `Salmo` when searching "salmon"),
+      // get sent to the very bottom instead of competing on rank/status alone.
+      const noRelevance = commonRel === 0 && sciRel === 0 && commonL !== ql && sciL !== ql;
+      if (noRelevance) score -= 1000;
+ 
       return { ...r, _score: score };
     });
     scored.sort((a, b) => b._score - a._score);
-
-    // ── Phase 6: fetch Wikipedia thumbnails (all candidates, in parallel) ──
-    const candidates = scored.slice(0, 30);
+ 
+    const relevant = scored.filter(r => r._score > -1000);
+    if (!relevant.length) {
+      showResults('<div class="search-message">No closely matching species found. Try a more specific name.</div>');
+      btn.disabled = false; btn.textContent = 'Search';
+      return;
+    }
+ 
+    // ── Phase 6: fetch Wikipedia thumbnails (only for the real candidates) ──
+    const candidates = relevant.slice(0, 30);
     showResults(`<div class="search-message">Loading photos for ${candidates.length} species…</div>`);
     const withThumb = await Promise.all(
       candidates.map(async r => {
         let thumb = null;
         let wikiTitle = null;
+        const genus = r.scientificname.trim().split(/\s+/)[0].toLowerCase();
         const names = [r.scientificname, r._common].filter(Boolean);
         for (const name of names) {
           try {
@@ -702,8 +762,19 @@ async function wormsSearch() {
             if (res.ok) {
               const data = await res.json();
               if (data.type !== 'disambiguation') {
-                if (data.thumbnail?.source && !thumb) thumb = data.thumbnail.source;
-                if (data.title && !wikiTitle) wikiTitle = data.title;
+                // Trust an exact scientific-name lookup outright. For a common-name
+                // lookup, only accept it if the returned page actually mentions the
+                // species' own genus — this replaces the old word-overlap check,
+                // which silently disabled itself whenever r._common was empty
+                // (''.split(/\s+/) → [''], and every string.includes('') is true,
+                // so the "bad title" guard always passed by accident).
+                const isSciLookup = name === r.scientificname;
+                const haystack = `${data.title || ''} ${data.extract || ''}`.toLowerCase();
+                const isRelevant = isSciLookup || haystack.includes(genus);
+                if (isRelevant) {
+                  if (data.thumbnail?.source && !thumb) thumb = data.thumbnail.source;
+                  if (data.title && !wikiTitle) wikiTitle = data.title;
+                }
               }
             }
           } catch(e) {}
@@ -711,35 +782,34 @@ async function wormsSearch() {
         return { ...r, _thumb: thumb, _wikiTitle: wikiTitle };
       })
     );
-
+ 
     // Show all results (photos first within same score band), no hard photo requirement
     withThumb.sort((a, b) => {
       if (b._score !== a._score) return b._score - a._score;
       return (b._thumb ? 1 : 0) - (a._thumb ? 1 : 0); // photos first on tie
     });
-
+ 
     if (!withThumb.length) {
       showResults('<div class="search-message">No matching species found.</div>');
       return;
     }
-
-    // ── Phase 7: render ──
+ 
+    // ── Phase 7: render (unchanged from original) ──
     const container = document.createElement('div');
-
-    // Show already-logged matches at the very top with a "Previously found" badge
+ 
     const ql2 = q.toLowerCase();
     const matchingKnown = knownFish.filter(f => {
       const cn = (f.common_name || '').toLowerCase();
       const sn = (f.scientific_name || '').toLowerCase();
       return cn.includes(ql2) || sn.includes(ql2);
     }).slice(0, 3);
-
+ 
     if (matchingKnown.length) {
       const divider = document.createElement('div');
       divider.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;padding:8px 14px 4px;background:#f9f7f3;border-bottom:1px solid #f0ede6';
       divider.textContent = 'Previously found';
       container.appendChild(divider);
-
+ 
       matchingKnown.forEach(f => {
         const item = document.createElement('div');
         item.className = 'search-result-item';
@@ -762,32 +832,23 @@ async function wormsSearch() {
         item.addEventListener('click', () => selectKnownFish(f));
         container.appendChild(item);
       });
-
+ 
       const divider2 = document.createElement('div');
       divider2.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;padding:8px 14px 4px;background:#f9f7f3;border-bottom:1px solid #f0ede6';
       divider2.textContent = 'All species';
       container.appendChild(divider2);
     }
-
+ 
     withThumb.forEach(r => {
-      const rawTitle = r._wikiTitle || '';
-      const looksScientific = rawTitle && rawTitle.toLowerCase() === r.scientificname.toLowerCase();
-      // Also reject wiki titles that seem completely unrelated to the species
-      const titleWords = rawTitle.toLowerCase().split(/\s+/);
-      const sciWords = r.scientificname.toLowerCase().split(/\s+/);
-      const commonWords = (r._common || '').toLowerCase().split(/\s+/);
-      const allSpeciesWords = [...sciWords, ...commonWords];
-      const titleSeemsBad = rawTitle && !titleWords.some(w => allSpeciesWords.some(s => s.includes(w) || w.includes(s)));
-      const bestCommon = (looksScientific || titleSeemsBad) ? r._common : (rawTitle || r._common);
-      const displayName = bestCommon
-        ? bestCommon.charAt(0).toUpperCase() + bestCommon.slice(1)
-        : r.scientificname;
-  
-      const subLine = r._common ? r.scientificname : '';
-      const rankBadge = r.rank
-        ? `<span style="font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:#e8f4f0;color:#2d6a4f;margin-left:6px">${r.rank}</span>`
-        : '';
+    const rawTitle = r._wikiTitle || '';
+    const wikiIsUseful = rawTitle && rawTitle.toLowerCase() !== r.scientificname.toLowerCase();
+    const bestCommon = wikiIsUseful ? rawTitle : (r._common || '');
+    const displayName = bestCommon
+    ? bestCommon.charAt(0).toUpperCase() + bestCommon.slice(1)
+    : r.scientificname;
 
+  const subLine = r._common ? r.scientificname : '';
+ 
       const item = document.createElement('div');
       item.className = 'search-result-item';
       item.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px';
@@ -816,12 +877,12 @@ async function wormsSearch() {
       item.addEventListener('click', () => selectSpecies(r.AphiaID, r.scientificname, r.status || '', bestCommon || ''));
       container.appendChild(item);
     });
-
+ 
     const el = document.getElementById('search-results');
     el.innerHTML = '';
     el.appendChild(container);
     el.style.display = 'block';
-
+ 
   } catch(e) {
     showResults(`<div class="search-message">Search failed: ${e.message}</div>`);
   } finally {
